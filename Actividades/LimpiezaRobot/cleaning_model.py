@@ -13,7 +13,8 @@ class CleaningModel(Model):
     def __init__(self, agents: int, M: int, N: int, dirty_percent: int) -> None:
         # Define attributes
         self.num_agents = agents
-        self.dirty_cells_count = int((M * N) * (dirty_percent / 100))
+        self.total_cells = M * N
+        self.dirty_cells_count = int(self.total_cells * (dirty_percent / 100))
         self.dirty_cells = dict()
         self.schedule = RandomActivation(self)
         self.grid = MultiGrid(M, N, True)

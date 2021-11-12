@@ -1,8 +1,14 @@
+from re import A
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules.ChartVisualization import ChartModule
 from cleaning_model import CleaningModel
 from histogram_module import HistogramModule
+
+COLS = 20
+ROWS = 20
+AGENTS = 5
+DIRTYP = 50
 
 def agent_portrayal(agent):
     portrayal = {"Shape": "circle",
@@ -21,10 +27,10 @@ def agent_portrayal(agent):
     return portrayal
 
 
-grid = CanvasGrid(agent_portrayal, 20, 20, 500, 500)
+grid = CanvasGrid(agent_portrayal, COLS, ROWS, 500, 500)
 chart = ChartModule([{"Label": "Dirty cells", "Color": "orange"}], data_collector_name='dirtycell_datacollector')
-histogram = HistogramModule(list(range(10)), 100, 200)
-server = ModularServer(CleaningModel, [grid, histogram, chart], "Cleaning Model", {"agents": 10, "M": 20, "N": 20, "dirty_percent": 99})
+histogram = HistogramModule(list(range(AGENTS)), 100, 200)
+server = ModularServer(CleaningModel, [grid, histogram, chart], "Cleaning Model", {"agents": AGENTS  , "M": COLS, "N": ROWS, "dirty_percent": DIRTYP})
 server.port = 8521
 
 server.launch()

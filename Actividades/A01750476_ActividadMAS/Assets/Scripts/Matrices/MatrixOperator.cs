@@ -10,6 +10,11 @@ public class MatrixOperator : MonoBehaviour
         return new float[4,1] {{v.x}, {v.y}, {v.z}, {1}};
     }
 
+    // Convert a position array into a Vector3
+    public Vector3 arrayToVec(float[,] arr) {
+        return new Vector3(arr[0,0], arr[1,0], arr[2,0]);
+    }
+
     // Get a scale matrix given the amount to be applied to each component
     public float[,] scaleMatrix(float sx, float sy, float sz)
     {
@@ -26,6 +31,12 @@ public class MatrixOperator : MonoBehaviour
     public float[,] xRotationMatrix(float angle) {
         float radAngle = angle * Mathf.Deg2Rad;
         return new float[4,4] {{1, 0, 0, 0}, {0, Mathf.Cos(radAngle), -Mathf.Sin(radAngle), 0}, {0, Mathf.Sin(radAngle), Mathf.Cos(radAngle), 0}, {0, 0, 0, 1}};
+    }
+
+    // Get a rotation matrix using the y axis
+    public float[,] yRotationMatrix(float angle) {
+        float radAngle = angle * Mathf.Deg2Rad;
+        return new float[4,4] {{Mathf.Cos(angle), 0, Mathf.Sin(angle), 0}, {0, 1, 0 ,0}, {-Mathf.Sin(angle), 0, Mathf.Cos(angle), 0}, {0, 0, 0, 1}};
     }
 
     // Rescale a 3D point given the amount to be applied to each component
