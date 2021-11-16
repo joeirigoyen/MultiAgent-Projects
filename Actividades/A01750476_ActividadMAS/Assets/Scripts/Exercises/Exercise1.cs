@@ -13,62 +13,59 @@ public class Exercise1 : MonoBehaviour
     [SerializeField] Transform pointA;
     [SerializeField] Transform pointB;
     [SerializeField] Transform pointC;
-    private Vector3 originalCPosition;
-    private float[,] scaleMatrix;
-    private float[,] transMatrixA;
-    private float[,] transMatrixC;
-    private float[,] rotationMatrixC;
-    private float[,] scaleMatResult;
-    private float[,] transMatResultA;
-    private float[,] transMatResultC;
-    private float[,] rotationMatrixResultC;
+    [SerializeField] Transform pointQ;
 
     // Start is called before the first frame update
     void Start()
     {
-        // Rescale point A
-        scaleMatrix = Operator.scaleMatrix(scaleX, scaleY, scaleZ);
-        scaleMatResult = Operator.multiplyMatrices(scaleMatrix, Operator.vectorToArray(pointA.localScale));
-        // Translate point A
-        transMatrixA = Operator.translationMatrix(pointB.localPosition.x, pointB.localPosition.y, pointB.localPosition.z);
-        transMatResultA = Operator.multiplyMatrices(transMatrixA, Operator.vectorToArray(pointA.localPosition));
-        // Get original position of point C
-        originalCPosition = pointC.localPosition;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        // Rescale point A
-        rescalePoint(pointA, scaleMatResult);
-        Debug.Log("Point A scale: " + pointA.localScale);
-        // Translate point A
-        translatePoint(pointA, transMatResultA);
-        Debug.Log("Point A position: " + pointA.localPosition);
-        // Rotate point C
-        rotationMatrixC = Operator.xRotationMatrix(cRotation);
-        rotationMatrixResultC = Operator.multiplyMatrices(rotationMatrixC, Operator.vectorToArray(pointA.localPosition));
-        rotatePoint(pointC, rotationMatrixResultC);
-    }
+        // Part 1
+        // Rescale point A by 1.43 on each axis
+        rescalePoint(pointQ, scaleX, scaleY, scaleZ);
+        // Translate using B position
+        translatePoint(pointQ, pointB);
+        // Part 2
+        // Rotate C by 45° 
+        rotatePoint(pointC, pointQ);
+    }   
 
     // Rescale a point
-    void rescalePoint(Transform point, float[,] scaleVec) 
+    void rescalePoint(Transform point, float scaleX, float scaleY, float scaleZ) 
     {
+        float[,] scaleMatrix = Operator.scaleMatrix(scaleX, scaleY, scaleZ);
+        float[,] result = Operator.multiplyMatrices(scaleMatrix, Operator.vectorToArray(point.localScale));
+        Vector3 newScale = Operator.arrayToVec(result);
         point.localScale -= point.localScale;
-        point.localScale += new Vector3(scaleVec[0,0], scaleVec[1,0], scaleVec[2,0]);
+        point.localScale += newScale;
     }
 
     // Translate a point
-    void translatePoint(Transform point, float[,] transVec)
+    void translatePoint(Transform point, Transform target)
     {
+        float[,] transMatrix = Operator.translationMatrix(target.localPosition.x, target.localPosition.y, target.localPosition.z);
+        float[,] result = Operator.multiplyMatrices(transMatrix, Operator.vectorToArray(point.localPosition));
+        Vector3 newPos = Operator.arrayToVec(result);
         point.localPosition -= point.localPosition;
-        point.localPosition += new Vector3(transVec[0,0], transVec[1,0], transVec[2,0]);
+        point.localPosition += newPos;
     }
 
     // Rotate a point
-    void rotatePoint(Transform point, float[,] rotateVec) 
+    void rotatePoint(Transform point, Transform pivot) 
     {
+        Vector3 tempPos = point.localPosition;
+        // Translate to pivot
+        float[,] transMat = Operator.translationMatrix(pivot.localPosition.x, pivot.localPosition.y, pivot.localPosition.z);
+        float[,] transResult = Operator.multiplyMatrices(transMat, Operator.vectorToArray(point.localPosition));
+        tempPos = Operator.arrayToVec(transResult);
+        // Rotate
+        float[,] rotMat = Operator.xRotationMatrix(cRotation);
+        float[,] rotResult = Operator.multiplyMatrices(rotMat, Operator.vectorToArray(tempPos));
+        tempPos = Operator.arrayToVec(rotResult);
+        // Translate to original position
+        float[,] transMat2 = Operator.translationMatrix(point.localPosition.x, point.localPosition.y, point.localPosition.z);
+        float[,] transResult2 = Operator.multiplyMatrices(transMat2, Operator.vectorToArray(tempPos));
+        tempPos = Operator.arrayToVec(transResult2);
+        // Assign values
         point.localPosition -= point.localPosition;
-        point.localPosition += new Vector3(rotateVec[0,0], rotateVec[1,0], rotateVec[2,0]) + originalCPosition;
+        point.localPosition += tempPos;
     }
 }

@@ -43,11 +43,11 @@ class CleaningModel(Model):
 
     # Perform actions on each step
     def step(self): 
-        self.dirtycell_datacollector.collect(self)
-        self.schedule.step()
         if (self.dirty_cells_count > 0):
             self.ticks += 1
-
+        self.dirtycell_datacollector.collect(self)
+        self.schedule.step()
+        
 
 class CleaningAgent(Agent):
     def __init__(self, unique_id: int, model: Model) -> None:
@@ -64,7 +64,7 @@ class CleaningAgent(Agent):
         self.moves += 1
 
     # Check if a cell is dirty and clean it
-    def clean_cell(self) -> bool:
+    def clean_cell(self) -> None:
         # Check if current position is within the dirty cells dictionary
         if self.pos in self.model.dirty_cells:
             # Check if current cell is dirty
@@ -73,16 +73,15 @@ class CleaningAgent(Agent):
                 self.model.dirty_cells[self.pos] = 0
                 self.model.dirty_cells_count -= 1
                 self.found_dirty = True
-                return True
             else:
                 self.found_dirty = False
-                return False
         else:
             self.found_dirty = False
-            return False
 
     def step(self) -> None:
+        # Try to clean cell
+        self.clean_cell()
         # If agent did not clean a cell, move to a random position
-        if not self.clean_cell():
+        if not self.found_dirty:
             self.move()
             

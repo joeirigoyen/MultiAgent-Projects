@@ -36,7 +36,7 @@ public class MatrixOperator : MonoBehaviour
     // Get a rotation matrix using the y axis
     public float[,] yRotationMatrix(float angle) {
         float radAngle = angle * Mathf.Deg2Rad;
-        return new float[4,4] {{Mathf.Cos(angle), 0, Mathf.Sin(angle), 0}, {0, 1, 0 ,0}, {-Mathf.Sin(angle), 0, Mathf.Cos(angle), 0}, {0, 0, 0, 1}};
+        return new float[4,4] {{Mathf.Cos(radAngle), 0, Mathf.Sin(radAngle), 0}, {0, 1, 0 ,0}, {-Mathf.Sin(radAngle), 0, Mathf.Cos(radAngle), 0}, {0, 0, 0, 1}};
     }
 
     // Rescale a 3D point given the amount to be applied to each component

@@ -18,7 +18,7 @@ def agent_portrayal(agent):
     
     if agent.found_dirty:
         portrayal["Color"] = "red"
-        portrayal["Layer"] = 1
+        portrayal["Layer"] = 1  
         portrayal["r"] = 0.6
     else:
         portrayal["Color"] = "blue"

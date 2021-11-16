@@ -1,9 +1,9 @@
 #%%
 from cleaning_model import CleaningModel
 
-MAX_STEPS = 500
+MAX_STEPS = 800
 
-model = CleaningModel(5, 20, 20, 100)
+model = CleaningModel(10, 10, 20, 50)
 
 for i in range(MAX_STEPS):
     model.step()
@@ -21,4 +21,3 @@ print(f"Completion steps: {required_steps}")
 print(f"Clean cell percentage: {(model.total_cells - model.dirty_cells_count) / (model.total_cells) * 100}%")
 
 # %%
-    

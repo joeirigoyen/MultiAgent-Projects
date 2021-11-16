@@ -46,7 +46,7 @@ public class Exercise2 : MonoBehaviour
         float[,] translationMatrix1 = Operator.translationMatrix(pivotPos.x, pivotPos.y, pivotPos.z);
         float[,] temp = Operator.multiplyMatrices(translationMatrix1, Operator.vectorToArray(pointPos));
         // Rotate
-        float[,] rotationMatrix = Operator.yRotationMatrix(angle);
+        float[,] rotationMatrix = Operator.xRotationMatrix(angle);
         temp = Operator.multiplyMatrices(rotationMatrix, temp);
         // Retranslate from pivot
         float[,] translationMatrix2 = Operator.translationMatrix(pointPos.x, pointPos.y, pointPos.z);
@@ -60,4 +60,4 @@ public class Exercise2 : MonoBehaviour
     {
 
     }
-},...........ñpl
+}
