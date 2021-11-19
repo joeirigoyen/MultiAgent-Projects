@@ -1,0 +1,8 @@
+*.bin
+*.suo
+*.user
+Animation/obj
+Animation/Temp
+Animation/Library
+
+/[Tt]emp/
