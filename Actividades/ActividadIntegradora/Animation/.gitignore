@@ -1,0 +1,8 @@
+*.bin
+*.suo
+*.user
+obj
+Temp
+Library
+
+/[Tt]emp/
