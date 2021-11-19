@@ -1,0 +1,8 @@
+*.bin
+*.suo
+*.user
+Visualizer/obj
+Visualizer/Temp
+Visualizer/Library
+
+/[Tt]emp/
