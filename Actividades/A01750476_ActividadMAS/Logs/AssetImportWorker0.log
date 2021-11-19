@@ -136,3 +136,4 @@ Received Import Request.
 Start importing Assets/Low Poly Cars (Free)/Materials/Car Material 1.mat using Guid(169a223c9591cdf43b16775e4ff1b888) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'ed2cd5accf7e16ac6f6cc7e9d58194ec') in 0.127722 seconds 
   Import took 0.129842 seconds .
 
+AssetImportWorkerClient::OnTransportError - code=2 error=End of file

@@ -1,5 +1,9 @@
 from mesa import Agent, Model
 
+class Depot(Agent):
+    def __init__(self, unique_id: int, model: Model) -> None:
+        super().__init__(unique_id, model)
+        self.type_id = 3
 
 class Box(Agent):
     def __init__(self, unique_id: int, model: Model) -> None:
@@ -11,7 +15,7 @@ class Box(Agent):
 class Robot(Agent):
     def __init__(self, unique_id: int, model: Model) -> None:
         super().__init__(unique_id, model)
-        self.type_id = 1
+        self.type_id = 1            
         self.grabbed_box = None
     
     # Check if there is an available space for the agent to move given it's possible next cells
@@ -35,7 +39,7 @@ class Robot(Agent):
             self.model.grid.move_agent(next_pos)
 
     # Move agent to follow one of the coordinates of the depositing area
-    def seek_depot(self, home: Agent) -> None:
+    def seek_depot(self, home: Agent, box: Agent) -> None:
         # Get distance from agent to depositing cell
         distance = (home.pos[0] - self.pos[0], home.pos[1] - self.pos[1])
         # If the x distance is bigger than, or equal to the y distance, move horizontally
@@ -58,22 +62,37 @@ class Robot(Agent):
             else:
                 new_pos = (self.pos[0], self.pos[1] + 1)
                 self.model.grid.move_agent(new_pos)
+        # Move box along with the robot
+        box.pos = self.pos
     
     # Check if robot can grab box
-    def found_box(self) -> tuple:
-        # If the robot is not currently grabbing any box
-        if not self.is_grabbing:
-            # Get neighborhood
-            neighbors = self.model.grid.get_cell_list_contents(self.pos)
-            if len(neighbors) > 1:
-                for n in neighbors:
-                    if n.type_id == 2:
-                        return n.pos
-        else:
-            return False
+    def get_box(self, box: Agent) -> None:
+        # Get neighborhood
+        neighbors = self.model.grid.get_neighborhood(self.pos)
+        # Iterate through neighborhood
+        for n in neighbors:
+            # If a neighbor is a box, add the box to the robot's grabbed_box attribute and make the box's position the robot's position
+            if n.type_id == 2:
+                self.grabbed_box = n
+                n.pos = self.pos
+              
+    # Drop a box in a depot      
+    def drop_box(self):
+        # Check every neighbor
+        neighbors = self.model.grid.get_neighborhood(self.pos)
+        for n in neighbors:
+            # If a neighbor is a depot, try to drop it in the stack
+            if n.type_id == 3:
+                # If the stack has less than 5 boxes, assign the grabbed box's position to the depot's position
+                if len(self.mode.grid.get_cell_contents(n.pos)) < 5:    
+                    self.grabbed_box.pos = n.pos
+                    self.grabbed_box = None
+                    break
     
     def step(self):
-        if self.is_grabbing:
+        if self.grabbed_box == None:
+            self.get_box()
             self.seek_box()
         else:
-            self.seek_depot()
+            self.drop_box()
+            self.seek_depot(self.model.depots[0], self.grabbed_box)
