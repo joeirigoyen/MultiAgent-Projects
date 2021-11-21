@@ -1,4 +1,3 @@
-from re import A
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules.ChartVisualization import ChartModule
@@ -15,7 +14,6 @@ def agent_portrayal(agent):
                  "Filled": "true",
                  "Layer": 0,
                  "r": 0.4}
-    
     if agent.found_dirty:
         portrayal["Color"] = "red"
         portrayal["Layer"] = 1  
