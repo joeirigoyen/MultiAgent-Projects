@@ -1,3 +1,12 @@
+"""Robot Model Visualizer
+
+Utilizes robot_model and robot_agents to create a visual grid
+containing the agents' positions on each step in order for the 
+project to be easily debugged and interpreted.
+"""
+
+__author__ = "Raúl Youthan Irigoyen Osorio"
+
 from mesa import Agent
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
@@ -7,11 +16,15 @@ from agent_types import AgentType as agt
 AGENTS = 5
 WIDTH = 10
 HEIGHT = 10
-BOXES = 20
+BOXES = 45
+DEPOT_X = 3
+DEPOT_Y = 3
+DEPOTS = DEPOT_X * DEPOT_Y
 CANVAS_WIDTH = 500
 CANVAS_HEIGHT = 500
 
-model = RobotModel(AGENTS, WIDTH, HEIGHT, BOXES)
+model = RobotModel(AGENTS, WIDTH, HEIGHT, BOXES, DEPOT_X, DEPOT_Y)
+
 
 def agent_portrayal(agent) -> dict[str, str]:
     portrayal = {"Filled": "true"}
@@ -19,13 +32,13 @@ def agent_portrayal(agent) -> dict[str, str]:
         portrayal["Shape"] = "circle"
         portrayal["Layer"] = 1
         portrayal["r"] = 0.5
-        if agent.unique_id == BOXES + 4:
+        if agent.unique_id == BOXES + (DEPOTS) + 1:
             portrayal["Color"] = "#cc0e04"
-        elif agent.unique_id == BOXES + 5:
+        elif agent.unique_id == BOXES + (DEPOTS) + 2:
             portrayal["Color"] = "#27ccdb"
-        elif agent.unique_id == BOXES + 6:
+        elif agent.unique_id == BOXES + (DEPOTS) + 3:
             portrayal["Color"] = "#109c06"
-        elif agent.unique_id == BOXES + 7:
+        elif agent.unique_id == BOXES + (DEPOTS) + 4:
             portrayal["Color"] = "#ff8812"
         else:
             portrayal["Color"] = "#0500a3"
@@ -42,8 +55,20 @@ def agent_portrayal(agent) -> dict[str, str]:
     return portrayal
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     grid = CanvasGrid(agent_portrayal, WIDTH, HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
-    server = ModularServer(RobotModel, [grid], "Robot Model", {"agents": AGENTS, "width": WIDTH, "height": HEIGHT, "boxes": BOXES})
+    server = ModularServer(
+        RobotModel,
+        [grid],
+        "Robot Model",
+        {
+            "agents": AGENTS,
+            "width": WIDTH,
+            "height": HEIGHT,
+            "boxes": BOXES,
+            "depot_x": DEPOT_X,
+            "depot_y": DEPOT_Y,
+        },
+    )
     server.port = 8521
     server.launch()
