@@ -4,10 +4,10 @@ from mesa.visualization.ModularVisualization import ModularServer
 from robot_model import RobotModel
 from agent_types import AgentType as agt
 
-AGENTS = 1
-WIDTH = 5
-HEIGHT = 5
-BOXES = 15
+AGENTS = 5
+WIDTH = 10
+HEIGHT = 10
+BOXES = 20
 CANVAS_WIDTH = 500
 CANVAS_HEIGHT = 500
 
@@ -19,7 +19,16 @@ def agent_portrayal(agent) -> dict[str, str]:
         portrayal["Shape"] = "circle"
         portrayal["Layer"] = 1
         portrayal["r"] = 0.5
-        portrayal["Color"] = "blue"
+        if agent.unique_id == BOXES + 4:
+            portrayal["Color"] = "#cc0e04"
+        elif agent.unique_id == BOXES + 5:
+            portrayal["Color"] = "#27ccdb"
+        elif agent.unique_id == BOXES + 6:
+            portrayal["Color"] = "#109c06"
+        elif agent.unique_id == BOXES + 7:
+            portrayal["Color"] = "#ff8812"
+        else:
+            portrayal["Color"] = "#0500a3"
     if agent.type_id == agt.BOX:
         portrayal["Shape"] = "circle"
         portrayal["Layer"] = 2

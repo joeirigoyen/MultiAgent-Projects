@@ -27,17 +27,22 @@ class Robot(Agent):
         self.type_id = agt.ROBOT         
         self.grabbed_box = None
         self.target_box = None
-        self.targeted_moves = 0
-        self.max_targeted_moves = (self.model.width * self.model.height) // 2
 
     # Get a box's position from the model's found_boxes list 
-    def get_found_box(self) -> tuple:
-        box_positions: list = self.model.found_boxes
-        if len(box_positions) > 0:
-            new_box_pos = box_positions.pop()
-            return new_box_pos
+    def get_found_box(self) -> Agent:
+        if self.grabbed_box == None:
+            if len(self.model.found_boxes) > 0:
+                new_box = self.model.found_boxes.pop()
+                if not new_box.targeted:
+                    new_box.targeted = True
+                    print(f"Agent {self.unique_id - 18} is now targeting box at {new_box.pos}")
+                    return new_box
+                else:
+                    return None
+            else:
+                return None
         else:
-            return (-1, -1)
+            return None
     
     # Add boxes to found_boxes model list if an agent is not able to carry them
     def add_extra_box(self, neighborhood: list) -> None:
@@ -50,23 +55,23 @@ class Robot(Agent):
                 for c in contents:
                     if c.type_id == agt.BOX:
                         # If it's not already in a deposit or it's not grabbed, add it to the found_boxes model list
-                        if not c.finished and not c.is_grabbed and not c.targeted:
-                            c.targeted = True
-                            self.model.found_boxes.append(c.pos)
+                        if not c.finished and not c.is_grabbed and c not in self.model.found_boxes:
+                            self.model.found_boxes.append(c)
+                            print(f"Agent {self.unique_id - 18} found a box at {c.pos}")
 
     # Find an available depot within the model's dictionary
     def find_depot(self) -> tuple:
         # Check every depot
         for pos, count in self.model.depots.items():
             if count < 5:
+                print(f"Agent {self.unique_id - 18} will deposit box at {pos}")
                 return pos
         return (-1, -1)
     
-    # Move the agent towars a target
+    # Move the agent towards a target
     def move_towards(self, target: tuple) -> None:
         # Initialize next position
         next_pos = tuple()
-        # Get distance from agent to depot
         x_distance, y_distance = (target[0] - self.pos[0], target[1] - self.pos[1])
         # If the x distance is more than the y distance, move horizontally
         if abs(x_distance) > abs(y_distance):
@@ -80,31 +85,12 @@ class Robot(Agent):
                 next_pos = (self.pos[0], self.pos[1] + 1)
             else:
                 next_pos = (self.pos[0], self.pos[1] - 1)
+        # Avoid getting past the border
         if next_pos[0] >= self.model.width:
-            next_pos[0] = next_pos[0] - 1
-        elif next_pos[0] < 0:
-            next_pos[0] = 0
+            next_pos = (next_pos[0] - 1, next_pos[1])
         elif next_pos[1] >= self.model.height:
-            next_pos[1] = next_pos[1] - 1
-        elif next_pos[1] < 0:
-            next_pos[1] = 0
-            
+            next_pos = (next_pos[0], next_pos[1] - 1)
         self.model.grid.move_agent(self, next_pos)
-    
-    # Look for a depot and try to move towars it
-    def seek_depot(self) -> None:
-        # Find an available depot
-        depot_pos = self.find_depot()
-        # Get current neighbors
-        neighborhood = self.model.grid.get_neighborhood(self.pos, moore=False, include_center=False)     
-        # Check if there are other boxes within the neighborhood so they can be added to the model's found_boxes list
-        self.add_extra_box(neighborhood)        
-        # If the depot is within the neighbors, drop the box in it's position
-        if depot_pos in neighborhood:
-            self.drop_box(depot_pos)
-        # If the depot is not a neighbor, move towards the depot's position
-        else:
-            self.move_towards(depot_pos)
 
     # Move agent randomly to find a box
     def move_randomly(self) -> None:
@@ -119,46 +105,80 @@ class Robot(Agent):
             if next_pos[0] != -1:
                 self.model.grid.move_agent(self, next_pos)
     
+    # Pick a box
+    def grab_box(self, n: Agent) -> None:
+        self.grabbed_box = n
+        self.grabbed_box.is_grabbed = True
+        self.grabbed_box.targeted = False
+        self.target_box = self.get_found_box()
+        print(f"Agent {self.unique_id - 18} grabbed box at {n.pos}")
+        self.move_box()
+    
+    # Grab a box if the agent is able to
+    def check_box(self, n: Agent) -> None:
+        # If a neighbor is a box and no agent is holding it, check if the robot can grab it
+        if n.type_id == agt.BOX:
+            if not n.is_grabbed and not n.finished:
+                # If the agent found a box but is currently carrying another one, add it to the model's found_boxes list
+                if self.grabbed_box != None:
+                    if n not in self.model.found_boxes:
+                        print(f"Agent {self.unique_id - 18} found a box at {n.pos}")
+                        self.model.found_boxes.append(n)
+                # Otherwise, if the robot is currently looking for a box, check if it's the same box
+                elif self.target_box != None:
+                    if self.target_box == n:
+                        self.grab_box(n)
+                # Otherwise, if the box isn't already targeted, grab it
+                elif not n.targeted:
+                    self.grab_box(n)
+                
     # Check if an agent can grab a box and then grab it if it can
-    def check_box(self) -> None:
+    def check_for_boxes(self) -> None:
     # Get neighborhood
-        neighbors = self.model.grid.get_neighborhood(self.pos, moore=False)
+        neighborhood = self.model.grid.get_neighborhood(self.pos, moore=False)
         # Iterate through neighborhood
-        for cell in neighbors:
+        for cell in neighborhood:
             # If the neighbor cell is occupied, check it's contents
             contents = self.model.grid.get_cell_list_contents(cell)
             if len(contents) > 0:
                 for n in contents:
-                    # If a neighbor is a box and no agent is holding it, add the box to the robot's grabbed_box attribute
-                    if n.type_id == agt.BOX:
-                        if not n.is_grabbed and not n.finished:
-                            # If the agent has a target, set the target as None again
-                            if self.target_box != None:
-                                self.target_box = None
-                            print(f"Agent {self.unique_id} grabbed box: {n.unique_id}")
-                            # If the agent found a box but is currently carrying another one, add it to the model's found_boxes list
-                            if self.grabbed_box != None:
-                                if not n.targeted:
-                                    n.targeted = True
-                                    self.model.found_boxes.append(n.pos)
-                            # Otherwise, just grab the box
-                            else:
-                                self.grabbed_box = n
-                                self.grabbed_box.is_grabbed = True
-                                self.move_box()
+                    self.check_box(n)
+           
+    # Look for a depot and try to move towars it
+    def seek_depot(self) -> None:
+        # Find an available depot
+        depot_pos = self.find_depot()
+        # Get current neighbors
+        neighborhood = self.model.grid.get_neighborhood(self.pos, moore=False, include_center=False)     
+        # Check if there are other boxes within the neighborhood so they can be added to the model's found_boxes list
+        self.add_extra_box(neighborhood)        
+        # If the depot is within the neighbors, drop the box in it's position
+        if depot_pos in neighborhood:
+            print(f"Agent {self.unique_id - 18} dropped box at {depot_pos}")
+            self.drop_box(depot_pos)
+        # If the depot is not a neighbor, move towards the depot's position
+        else:
+            self.move_towards(depot_pos)      
                                 
     # Move robot to find a box, whether it is a random or targeted movement
     def seek_box(self) -> None:
+        # Look in neighborhood for boxes
+        self.check_for_boxes()
         # If agent is not currently targeting any box, find a box to target
         if self.target_box == None:
             temp_target = self.get_found_box()
-            # If there is a box, assign it as the agent's current target
-            if temp_target[0] != -1:
+            # If there is a box to be grabbed, assign it as the agent's current target
+            if temp_target != None:
                 self.target_box = temp_target
             else:
                 self.move_randomly()
-        else: 
-            self.move_towards(self.target_box)
+        # If agent is targeting a box, check if it hasn't been taken by another agent
+        else:
+            if not self.target_box.is_grabbed:
+                self.move_towards(self.target_box.pos)
+            else:
+                print(f"Agent {self.unique_id - 18}'s target has been grabbed by other agent. Setting agent's target to None.")
+                self.target_box = None
     
     # Move box along with the robot
     def move_box(self) -> None:
@@ -172,27 +192,22 @@ class Robot(Agent):
         # Put box in depot
         self.model.grid.move_agent(self.grabbed_box, depot_pos)
         # Change box's attributes
-        self.grabbed_box.is_finished = True
+        self.grabbed_box.finished = True
+        self.grabbed_box.targeted = False
         # Change agent's attributes
         self.grabbed_box = None
         # Change depot's stack count
         self.model.depots[depot_pos] += 1
+        self.model.stacked_boxes += 1
     
     def step(self) -> None:
-        print(f"Agent grabbing box: {self.grabbed_box}")
-        print(f"Agent targeting box: {self.target_box}")
-        # Count targeted moves
+        # Debug
         if self.target_box != None:
-            self.targeted_moves += 1
-        else:
-            self.targeted_moves = 0
-        # Avoid getting a robot stuck
-        if self.targeted_moves > self.max_targeted_moves:
-            self.target_box = None
+            print(f"Agent {self.unique_id - 18} is looking for box at {self.target_box.pos}")
         # Move
         if self.grabbed_box is None:
-            self.check_box()
             self.seek_box()
+            self.move_box()
         else:
             self.seek_depot()
             self.move_box()

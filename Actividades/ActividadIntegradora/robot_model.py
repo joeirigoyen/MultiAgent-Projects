@@ -7,20 +7,23 @@ from agent_types import *
 
 class RobotModel(Model):
     def __init__(self, agents: int, width: int, height: int, boxes: int) -> None:
-        # Initialize attributes
+        # Initialize grid and activation attributes
         self.grid = MultiGrid(width, height, False)
+        self.schedule = RandomActivation(self)
+        self.running = True
+        # Initialize model attributes
         self.found_boxes = list()
         self.depots = dict()
         self.agents = agents
         self.width = width
         self.height = height
         self.boxes = boxes
-        self.schedule = RandomActivation(self)
-        self.running = True
-        # Create depot area (2x2)
+        # Create depot attributes
         self.starting_depot_x = width // 2 - 1
         self.starting_depot_y = height // 2 - 1
+        # Create global counters
         self.total_agent_count = 0
+        self.stacked_boxes = 0
         for i in range(2):
             for j in range(2):
                 # Initialize depot
@@ -67,4 +70,7 @@ class RobotModel(Model):
         return True
     
     def step(self):
-        self.schedule.step()
+        if self.stacked_boxes < self.boxes:
+            self.schedule.step()
+        else:
+            self.running = False
