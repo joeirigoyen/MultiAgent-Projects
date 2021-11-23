@@ -18,6 +18,7 @@ class Depot(Agent):
         super().__init__(unique_id, model)
         self.type_id = agt.DEPOT
         self.stack = 0
+        self.moves = 0
 
 
 class Box(Agent):
@@ -29,6 +30,7 @@ class Box(Agent):
         self.finished = False
         self.grabber = None
         self.y_pos = 0.5
+        self.moves = 0
         self.target_depot = None
 
 
@@ -38,6 +40,7 @@ class Robot(Agent):
         self.type_id = agt.ROBOT
         self.grabbed_box = None
         self.target_box = None
+        self.moves = 0
 
     # Get a box's position from the model's found_boxes list
     def get_found_box(self) -> Agent:
@@ -111,6 +114,7 @@ class Robot(Agent):
             next_pos = (next_pos[0] - 1, next_pos[1])
         elif next_pos[1] >= self.model.height:
             next_pos = (next_pos[0], next_pos[1] - 1)
+        self.moves += 1
         self.model.grid.move_agent(self, next_pos)
 
     # Move agent randomly to find a box
@@ -127,6 +131,7 @@ class Robot(Agent):
             next_pos = neighborhood[self.random.choice(possible_steps)]
             # If next_pos is not a fake tuple, move it to the given position
             if next_pos[0] != -1:
+                self.moves += 1
                 self.model.grid.move_agent(self, next_pos)
 
     # Pick a box

@@ -42,9 +42,9 @@ ScriptsOnlyBuild:
     - Class: 108
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 4074}
+      Script: {instanceID: 2406}
     - Class: 114
-      Script: {instanceID: 20208}
+      Script: {instanceID: 4076}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 157
@@ -190,6 +190,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.TextMeshPro.dll
     namespaceName: TMPro
     className: TextMeshProUGUI
+  - hash:
+      serializedVersion: 2
+      Hash: a6cc69bad58469c65cacbda8827e7ded
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: RoomPositionHandler
   - hash:
       serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
@@ -450,7 +456,7 @@ ScriptsOnlyBuild:
     className: TMP_ScrollbarEventHandler
   - hash:
       serializedVersion: 2
-      Hash: 54b9accec1e8546dcc6fb49a410898ff
+      Hash: e164ab9cf8db02a5bb902e84ef2e2ad5
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: AgentController
@@ -478,12 +484,6 @@ ScriptsOnlyBuild:
     assemblyName: UnityEngine.UI.dll
     namespaceName: UnityEngine.EventSystems
     className: TouchInputModule
-  - hash:
-      serializedVersion: 2
-      Hash: a6cc69bad58469c65cacbda8827e7ded
-    assemblyName: Assembly-CSharp.dll
-    namespaceName: 
-    className: RoomPositionHandler
   platform: 19
   scenePathNames:
   - Assets/Scenes/SampleScene.unity

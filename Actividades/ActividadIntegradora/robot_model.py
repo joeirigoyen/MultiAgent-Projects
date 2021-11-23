@@ -12,8 +12,12 @@ __author__ = "Raúl Youthan Irigoyen Osorio"
 from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
+from mesa.datacollection import DataCollector
 from robot_agents import *
-from agent_types import *
+
+
+def get_stacked_boxes(model: Model) -> int:
+    return model.stacked_boxes
 
 
 class RobotModel(Model):
@@ -22,6 +26,10 @@ class RobotModel(Model):
         # Initialize grid and activation attributes
         self.grid = MultiGrid(width, height, False)
         self.schedule = RandomActivation(self)
+        self.datacollector = DataCollector(
+            model_reporters={"Stacked Boxes": get_stacked_boxes},
+            agent_reporters={"Moves": "moves"})
+        print(self.datacollector.agent_reporters.values())
         self.running = True
         # Initialize model attributes
         self.found_boxes = list()
@@ -95,6 +103,8 @@ class RobotModel(Model):
     def step(self):
         if self.stacked_boxes < self.boxes and self.stacked_boxes < self.depots * 5 and self.current_steps < self.max_steps:
             self.schedule.step()
+            self.datacollector.collect(self)
             self.current_steps += 1
         else:
+            print(f"Run ended at step: {self.current_steps}")
             self.running = False

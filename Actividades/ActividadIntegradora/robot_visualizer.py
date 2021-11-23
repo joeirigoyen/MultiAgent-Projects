@@ -8,7 +8,7 @@ project to be easily debugged and interpreted.
 __author__ = "Raúl Youthan Irigoyen Osorio"
 
 from mesa import Agent
-from mesa.visualization.modules import CanvasGrid
+from mesa.visualization.modules import CanvasGrid, BarChartModule, ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 from robot_model import RobotModel
 from agent_types import AgentType as agt
@@ -20,13 +20,14 @@ BOXES = 45
 DEPOT_X = 3
 DEPOT_Y = 3
 DEPOTS = DEPOT_X * DEPOT_Y
+MAX_STEPS = 300
 CANVAS_WIDTH = 500
 CANVAS_HEIGHT = 500
 
-model = RobotModel(AGENTS, WIDTH, HEIGHT, BOXES, DEPOT_X, DEPOT_Y)
+model = RobotModel(AGENTS, WIDTH, HEIGHT, BOXES, DEPOT_X, DEPOT_Y, MAX_STEPS)
 
 
-def agent_portrayal(agent) -> dict[str, str]:
+def agent_portrayal(agent: Agent) -> dict[str, str]:
     portrayal = {"Filled": "true"}
     if agent.type_id == agt.ROBOT:
         portrayal["Shape"] = "circle"
@@ -56,7 +57,15 @@ def agent_portrayal(agent) -> dict[str, str]:
 
 
 if __name__ == "__main__":
-    grid = CanvasGrid(agent_portrayal, WIDTH, HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
+    grid = CanvasGrid(agent_portrayal, WIDTH, HEIGHT, CANVAS_WIDTH,
+                      CANVAS_HEIGHT)
+    bar_chart = BarChartModule([{
+        "label": "Moves",
+        "Color": "#AA0000"
+    }],
+                               scope="agent",
+                               sorting="ascending",
+                               sort_by="Moves")
     server = ModularServer(
         RobotModel,
         [grid],
@@ -68,6 +77,7 @@ if __name__ == "__main__":
             "boxes": BOXES,
             "depot_x": DEPOT_X,
             "depot_y": DEPOT_Y,
+            "max_steps": MAX_STEPS
         },
     )
     server.port = 8521
