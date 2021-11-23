@@ -17,15 +17,8 @@ from agent_types import *
 
 
 class RobotModel(Model):
-    def __init__(
-        self,
-        agents: int,
-        width: int,
-        height: int,
-        boxes: int,
-        depot_x: int,
-        depot_y: int,
-    ) -> None:
+    def __init__(self, agents: int, width: int, height: int, boxes: int,
+                 depot_x: int, depot_y: int, max_steps: int) -> None:
         # Initialize grid and activation attributes
         self.grid = MultiGrid(width, height, False)
         self.schedule = RandomActivation(self)
@@ -38,6 +31,8 @@ class RobotModel(Model):
         self.height = height
         self.boxes = boxes
         self.depots = depot_x * depot_y
+        self.current_steps = 0
+        self.max_steps = max_steps
         # Create depot attributes
         self.starting_depot_x = width // 2 - depot_x // 2
         self.starting_depot_y = height // 2 - depot_y // 2
@@ -52,12 +47,11 @@ class RobotModel(Model):
                 self.total_agent_count += 1
                 # Add depot to grid
                 self.grid.place_agent(
-                    depot, (self.starting_depot_x + i, self.starting_depot_y + j)
-                )
+                    depot,
+                    (self.starting_depot_x + i, self.starting_depot_y + j))
                 # Add depot's stack count to a dictionary using it's position as the key
-                self.depot_stacks[
-                    (self.starting_depot_x + i, self.starting_depot_y + j)
-                ] = 0
+                self.depot_stacks[(self.starting_depot_x + i,
+                                   self.starting_depot_y + j)] = 0
         # Create boxes
         for i in range(boxes):
             # Initialize box
@@ -78,7 +72,8 @@ class RobotModel(Model):
             self.grid.place_agent(robot, pos)
 
     def get_unique_pos(self) -> tuple:
-        rand_pos = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
+        rand_pos = lambda w, h: (self.random.randrange(w),
+                                 self.random.randrange(h))
         pos = rand_pos(self.grid.width, self.grid.height)
         while not self.grid.is_cell_empty(pos):
             pos = rand_pos(self.grid.width, self.grid.height)
@@ -98,7 +93,8 @@ class RobotModel(Model):
             return True
 
     def step(self):
-        if self.stacked_boxes < self.boxes and self.stacked_boxes < self.depots * 5:
+        if self.stacked_boxes < self.boxes and self.stacked_boxes < self.depots * 5 and self.current_steps < self.max_steps:
             self.schedule.step()
+            self.current_steps += 1
         else:
             self.running = False

@@ -135,7 +135,7 @@ class Robot(Agent):
         self.grabbed_box.is_grabbed = True
         self.grabbed_box.grabber = self
         self.grabbed_box.targeted = False
-        self.grabbed_box.stack_pos = 1.5
+        self.grabbed_box.y_pos = 1.5
         self.target_box = self.get_found_box()
         print(f"Agent {self.unique_id - 18} grabbed box at {n.pos}")
         self.move_box()

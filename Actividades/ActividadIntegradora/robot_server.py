@@ -19,6 +19,7 @@ boxes = 25
 step = 0
 depot_x = 2
 depot_y = 2
+max_steps = 0
 robot_model = None
 
 # App initialization
@@ -28,7 +29,7 @@ app = Flask("Robot example")
 # Route to initialize model
 @app.route("/init", methods=["POST", "GET"])
 def init_model():
-    global agents, width, height, boxes, robot_model, step, depot_x, depot_y
+    global agents, width, height, boxes, robot_model, step, depot_x, depot_y, max_steps
     if request.method == "POST":
         # Define model's initial variables
         agents = int(request.form.get("agents"))
@@ -37,12 +38,13 @@ def init_model():
         boxes = int(request.form.get("boxes"))
         depot_x = int(request.form.get("depot_x"))
         depot_y = int(request.form.get("depot_y"))
+        max_steps = int(request.form.get("max_steps"))
         step = 0
         # Initialize model
-        print(agents, boxes, width, height, depot_x, depot_y)
+        print(agents, boxes, width, height, depot_x, depot_y, max_steps)
         print(request.form)
         robot_model = RobotModel(agents, width, height, boxes, depot_x,
-                                 depot_y)
+                                 depot_y, max_steps)
         # Return JSON message if post method was OK
         return jsonify({"message": "accepted"})
 
