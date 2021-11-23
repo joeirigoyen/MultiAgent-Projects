@@ -11,24 +11,24 @@ from flask import Flask, request, jsonify
 from robot_agents import *
 from robot_model import *
 
-
 # Initial variables
 agents = 5
 width = 20
 height = 20
 boxes = 25
-model = None
 step = 0
 depot_x = 2
 depot_y = 2
+robot_model = None
 
 # App initialization
 app = Flask("Robot example")
 
+
 # Route to initialize model
 @app.route("/init", methods=["POST", "GET"])
 def init_model():
-    global agents, width, height, boxes, model, step, depot_x, depot_y
+    global agents, width, height, boxes, robot_model, step, depot_x, depot_y
     if request.method == "POST":
         # Define model's initial variables
         agents = int(request.form.get("agents"))
@@ -39,7 +39,10 @@ def init_model():
         depot_y = int(request.form.get("depot_y"))
         step = 0
         # Initialize model
-        model = RobotModel(agents, width, height, boxes, depot_x, depot_y)
+        print(agents, boxes, width, height, depot_x, depot_y)
+        print(request.form)
+        robot_model = RobotModel(agents, width, height, boxes, depot_x,
+                                 depot_y)
         # Return JSON message if post method was OK
         return jsonify({"message": "accepted"})
 
@@ -47,48 +50,58 @@ def init_model():
 # Get trajectories from robots
 @app.route("/getRobotPath", methods=["GET"])
 def get_robot_path():
-    global model
+    global robot_model
+    robot_positions = []
     if request.method == "GET":
-        robot_positions = [
-            {"x": x, "y": 1, "z": z}
-            for (a, x, z) in model.grid.coord_iter()
-            if a.type_id == agt.ROBOT
-        ]
-        return jsonify({"robot_path": robot_positions})
+        for (a, x, z) in robot_model.grid.coord_iter():
+            if len(a) > 0:
+                for agent in a:
+                    if agent.type_id == agt.ROBOT:
+                        print("Added box to list")
+                        robot_positions.append({"x": x, "y": 0, "z": z})
+                        print(robot_positions)
+        return jsonify({"positions": robot_positions})
 
 
 # Get trajectories from boxes
 @app.route("/getBoxPath", methods=["GET"])
 def get_box_path():
-    global model
+    global robot_model
+    box_positions = []
     if request.method == "GET":
-        box_positions = [
-            {"x": x, "y": 1, "z": z}
-            for (a, x, z) in model.grid.coord_iter()
-            if a.type_id == agt.BOX
-        ]
-        return jsonify({"box_path": box_positions})
+        for (a, x, z) in robot_model.grid.coord_iter():
+            if len(a) > 0:
+                for agent in a:
+                    if agent.type_id == agt.BOX:
+                        print("Added box to list")
+                        y = agent.y_pos
+                        box_positions.append({"x": x, "y": y, "z": z})
+                        print(box_positions)
+        return jsonify({"positions": box_positions})
 
 
 # Get trajectories from depots
 @app.route("/getDepotPath", methods=["GET"])
 def get_depot_path():
-    global model
+    global robot_model
+    depot_positions = []
     if request.method == "GET":
-        depot_positions = [
-            {"x": x, "y": 1, "z": z}
-            for (a, x, z) in model.grid.coord_iter()
-            if a.type_id == agt.DEPOT
-        ]
-        return jsonify({"depot_path": depot_positions})
+        for (a, x, z) in robot_model.grid.coord_iter():
+            if len(a) > 0:
+                for agent in a:
+                    if agent.type_id == agt.DEPOT:
+                        print("Added depot to list")
+                        depot_positions.append({"x": x, "y": 0, "z": z})
+                        print(depot_positions)
+        return jsonify({"positions": depot_positions})
 
 
 # Make model advance one step further
 @app.route("/step", methods=["GET"])
 def update_model():
-    global model, step
+    global robot_model, step
     if request.method == "GET":
-        model.step()
+        robot_model.step()
         step += 1
         return jsonify({"step": step})
 

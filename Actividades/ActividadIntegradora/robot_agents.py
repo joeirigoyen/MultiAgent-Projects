@@ -27,6 +27,9 @@ class Box(Agent):
         self.targeted = False
         self.is_grabbed = False
         self.finished = False
+        self.grabber = None
+        self.y_pos = 0.5
+        self.target_depot = None
 
 
 class Robot(Agent):
@@ -69,13 +72,12 @@ class Robot(Agent):
                 for c in contents:
                     if c.type_id == agt.BOX:
                         # If it's not already in a deposit or it's not grabbed, add it to the found_boxes model list
-                        if (
-                            not c.finished
-                            and not c.is_grabbed
-                            and c not in self.model.found_boxes
-                        ):
+                        if (not c.finished and not c.is_grabbed
+                                and c not in self.model.found_boxes):
                             self.model.found_boxes.append(c)
-                            print(f"Agent {self.unique_id - 18} found a box at {c.pos}")
+                            print(
+                                f"Agent {self.unique_id - 18} found a box at {c.pos}"
+                            )
 
     # Find an available depot within the model's dictionary
     def find_depot(self) -> tuple:
@@ -90,7 +92,8 @@ class Robot(Agent):
     def move_towards(self, target: tuple) -> None:
         # Initialize next position
         next_pos = tuple()
-        x_distance, y_distance = (target[0] - self.pos[0], target[1] - self.pos[1])
+        x_distance, y_distance = (target[0] - self.pos[0],
+                                  target[1] - self.pos[1])
         # If the x distance is more than the y distance, move horizontally
         if abs(x_distance) > abs(y_distance):
             if x_distance > 0:
@@ -113,10 +116,11 @@ class Robot(Agent):
     # Move agent randomly to find a box
     def move_randomly(self) -> None:
         # Get possible next cells
-        neighborhood = self.model.grid.get_neighborhood(
-            self.pos, moore=False, include_center=False
-        )
-        free_cells = list(map(self.model.is_available_robot_space, neighborhood))
+        neighborhood = self.model.grid.get_neighborhood(self.pos,
+                                                        moore=False,
+                                                        include_center=False)
+        free_cells = list(
+            map(self.model.is_available_robot_space, neighborhood))
         possible_steps = [c for c in range(len(neighborhood)) if free_cells[c]]
         # Get empty cell or fake tuple from get_next_pos()
         if len(possible_steps) > 0:
@@ -129,7 +133,9 @@ class Robot(Agent):
     def grab_box(self, n: Agent) -> None:
         self.grabbed_box = n
         self.grabbed_box.is_grabbed = True
+        self.grabbed_box.grabber = self
         self.grabbed_box.targeted = False
+        self.grabbed_box.stack_pos = 1.5
         self.target_box = self.get_found_box()
         print(f"Agent {self.unique_id - 18} grabbed box at {n.pos}")
         self.move_box()
@@ -142,7 +148,9 @@ class Robot(Agent):
                 # If the agent found a box but is currently carrying another one, add it to the model's found_boxes list
                 if self.grabbed_box != None:
                     if n not in self.model.found_boxes:
-                        print(f"Agent {self.unique_id - 18} found a box at {n.pos}")
+                        print(
+                            f"Agent {self.unique_id - 18} found a box at {n.pos}"
+                        )
                         self.model.found_boxes.append(n)
                 # Otherwise, if the robot is currently looking for a box, check if it's the same box
                 elif self.target_box != None:
@@ -168,10 +176,11 @@ class Robot(Agent):
     def seek_depot(self) -> None:
         # Find an available depot
         depot_pos = self.find_depot()
+        self.grabbed_box.target_depot = depot_pos
         # Get current neighbors
-        neighborhood = self.model.grid.get_neighborhood(
-            self.pos, moore=False, include_center=False
-        )
+        neighborhood = self.model.grid.get_neighborhood(self.pos,
+                                                        moore=False,
+                                                        include_center=False)
         # Check if there are other boxes within the neighborhood so they can be added to the model's found_boxes list
         self.add_extra_box(neighborhood)
         # If the depot is within the neighbors, drop the box in it's position
@@ -210,15 +219,20 @@ class Robot(Agent):
         # Change the box's position to the robot's position
         if self.grabbed_box != None:
             new_box_pos = self.pos
+            self.grabbed_box.y_pos = 1.5
             self.model.grid.move_agent(self.grabbed_box, new_box_pos)
 
     # Drop a box in a depot
     def drop_box(self, depot_pos: tuple) -> None:
         # Put box in depot
         self.model.grid.move_agent(self.grabbed_box, depot_pos)
+        self.grabbed_box.y_pos = self.model.depot_stacks[
+            self.grabbed_box.target_depot] + 0.5
         # Change box's attributes
         self.grabbed_box.finished = True
         self.grabbed_box.targeted = False
+        self.grabbed_box.grabber = None
+        self.grabbed_box.stacked_pos = self.model.depot_stacks
         # Change agent's attributes
         self.grabbed_box = None
         # Change depot's stack count

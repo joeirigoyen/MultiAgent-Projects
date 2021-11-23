@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 public class PathData
 {
-    public List<Vector3> posList;
+    public List<Vector3> positions;
 }
 
 public class AgentController : MonoBehaviour
@@ -23,15 +23,15 @@ public class AgentController : MonoBehaviour
     // Initialize position lists
     private PathData robotData, boxData, depotData;
     private GameObject[] robotInstances, boxInstances, depotInstances;
-    private List<Vector3> oldRobotPos, oldBoxPos;
-    private List<Vector3> newRobotPos, newBoxPos;
+    private List<Vector3> oldRobotPos, oldBoxPos, oldDepotPos;
+    private List<Vector3> newRobotPos, newBoxPos, newDepotPos;
     // Simulation's play/pause switch
     private bool pause = false;
     // Get prefabs and initial values
     private int depots;
     [SerializeField] GameObject robotPrefab, boxPrefab, depotPrefab, floor;
     [SerializeField] int robots, boxes, depot_x, depot_y, width, height;
-    [SerializeField] float updateTime = 5.0f, timer, dt;
+    [SerializeField] float updateTime = 0.5f, timer, dt;
 
     // Start is called before the first frame update
     void Start()
@@ -40,17 +40,42 @@ public class AgentController : MonoBehaviour
         robotData = new PathData();
         boxData = new PathData();
         depotData = new PathData();
+        oldRobotPos = new List<Vector3>();
+        newRobotPos = new List<Vector3>();
+        oldBoxPos = new List<Vector3>();
+        newBoxPos = new List<Vector3>();
+        oldDepotPos = new List<Vector3>();
+        newDepotPos = new List<Vector3>();
         // Initialize position lists
         robotInstances = new GameObject[robots];
         boxInstances = new GameObject[boxes];
         depotInstances = new GameObject[depot_x * depot_y];
         // Adjust floor size
-        floor.transform.localScale = new Vector3((float)(width / 10), 1, (float)(height / 10));
-        floor.transform.localPosition = new Vector3((float)(width / 2 - 0.5f), 0, (float)(height / 2 - 0.5f));
-        // Set timer
+        floor.transform.localScale = new Vector3((float)(width / 10) + 1.0f, 1, (float)(height / 10) + 1.0f);
+        floor.transform.position = new Vector3((float)(width / 2 - 0.5f), 0, (float)(height / 2 - 0.5f));
+        // Set timer to make a step immediately on start
         timer = updateTime;
         // Create instances of every agent
         depots = depot_x * depot_y;
+        Debug.Log("Creating robots...");
+        for (int r = 0; r < robots; r++)
+        {
+            robotInstances[r] = Instantiate(robotPrefab, Vector3.zero, Quaternion.identity);
+            robotInstances[r].transform.Rotate(0f, 90f, 0f);
+            Debug.Log("Created " + (r + 1) + " robots.");
+        }
+        Debug.Log("Creating boxes...");
+        for (int b = 0; b < boxes; b++)
+        {
+            boxInstances[b] = Instantiate(boxPrefab, Vector3.zero, Quaternion.identity);
+            Debug.Log("Created " + (b + 1) + " boxes");
+        }
+        Debug.Log("Creating depots...");
+        for (int d = 0; d < depots; d++)
+        {
+            depotInstances[d] = Instantiate(depotPrefab, Vector3.zero, Quaternion.identity);
+            Debug.Log("Created " + (d + 1) + " depots");
+        }
         // Send info through JSON
         StartCoroutine(SendConfig());
     }
@@ -69,30 +94,41 @@ public class AgentController : MonoBehaviour
             pause = true;
             StartCoroutine(Step());
         }
-        // Otherwise, update timer 
-        else
-        {
-            timer += Time.deltaTime;
-        }
+
         // If the simulation is not paused, move the agents smoothly using LERPs
         if (!pause)
         {
             // Move robots
+            Debug.Log("Updating robots...");
             for (int r = 0; r < robots; r++)
             {
+                Debug.Log("Updating robot " + r);
                 Vector3 lerp = Vector3.Lerp(oldRobotPos[r], newRobotPos[r], dt);
                 robotInstances[r].transform.localPosition = lerp;
                 Vector3 facingDir = oldRobotPos[r] - newRobotPos[r];
                 robotInstances[r].transform.localRotation = Quaternion.LookRotation(facingDir);
+                robotInstances[r].transform.Rotate(-90f, 0f, 180f);
             }
             // Move boxes
+            Debug.Log("Updating boxes...");
             for (int b = 0; b < boxes; b++)
             {
+                Debug.Log("Updating box " + b);
                 Vector3 lerp = Vector3.Lerp(oldBoxPos[b], newBoxPos[b], dt);
                 boxInstances[b].transform.localPosition = lerp;
                 Vector3 facingDir = oldBoxPos[b] - newBoxPos[b];
                 boxInstances[b].transform.localRotation = Quaternion.LookRotation(facingDir);
             }
+            Debug.Log("Updating depots...");
+            for (int d = 0; d < depots; d++)
+            {
+                Debug.Log("Updating depot " + d);
+                Vector3 lerp = Vector3.Lerp(oldDepotPos[d], newDepotPos[d], dt);
+                depotInstances[d].transform.localPosition = lerp;
+                Vector3 facingDir = oldDepotPos[d] - newDepotPos[d];
+                depotInstances[d].transform.localRotation = Quaternion.LookRotation(facingDir);
+            }
+            timer += Time.deltaTime;
         }
     }
 
@@ -109,6 +145,7 @@ public class AgentController : MonoBehaviour
         {
             StartCoroutine(GetRobotData());
             StartCoroutine(GetBoxData());
+            StartCoroutine(GetDepotData());
         }
     }
 
@@ -135,77 +172,10 @@ public class AgentController : MonoBehaviour
         }
         else
         {
-            Debug.Log("Post completed. Initializing agents' positions.");
-            StartCoroutine(GetInitRobotData());
-            StartCoroutine(GetInitBoxData());
-            StartCoroutine(GetInitDepotData());
-        }
-    }
-
-    // Instantiate robots through the given JSON data
-    IEnumerator GetInitRobotData()
-    {
-        // Attempt to get the robots' positions
-        UnityWebRequest www = UnityWebRequest.Get(serverURL + robotEndpoint);
-        yield return www.SendWebRequest();
-        // If attempt is successful, set the robots in their initial positions
-        if (www.result != UnityWebRequest.Result.Success)
-        {
-            Debug.LogFormat(www.error);
-        }
-        else
-        {
-            robotData = JsonUtility.FromJson<PathData>(www.downloadHandler.text);
-            Debug.Log(robotData.posList);
-
-            foreach (Vector3 pos in robotData.posList)
-            {
-                Instantiate(robotPrefab, pos, Quaternion.identity);
-            }
-        }
-    }
-
-    IEnumerator GetInitBoxData()
-    {
-        // Attempt to get the boxes' positions
-        UnityWebRequest www = UnityWebRequest.Get(serverURL + boxEndpoint);
-        yield return www.SendWebRequest();
-        // If attempt is successful, set the boxes in their initial positions
-        if (www.result != UnityWebRequest.Result.Success)
-        {
-            Debug.LogFormat(www.error);
-        }
-        else
-        {
-            boxData = JsonUtility.FromJson<PathData>(www.downloadHandler.text);
-            Debug.Log(boxData.posList);
-
-            foreach (Vector3 pos in boxData.posList)
-            {
-                Instantiate(boxPrefab, pos, Quaternion.identity);
-            }
-        }
-    }
-
-    IEnumerator GetInitDepotData()
-    {
-        // Attempt to get the depots' positions
-        UnityWebRequest www = UnityWebRequest.Get(serverURL + depotEndpoint);
-        yield return www.SendWebRequest();
-        // If attempt is successful, set the depots in their initial positions
-        if (www.result != UnityWebRequest.Result.Success)
-        {
-            Debug.LogFormat(www.error);
-        }
-        else
-        {
-            depotData = JsonUtility.FromJson<PathData>(www.downloadHandler.text);
-            Debug.Log(depotData.posList);
-
-            foreach (Vector3 pos in depotData.posList)
-            {
-                Instantiate(depotPrefab, pos, Quaternion.identity);
-            }
+            Debug.Log("Post completed. Getting agents' positions.");
+            StartCoroutine(GetRobotData());
+            StartCoroutine(GetDepotData());
+            StartCoroutine(GetBoxData());
         }
     }
 
@@ -218,21 +188,22 @@ public class AgentController : MonoBehaviour
         // If attempt is successful, set the robots in their new positions
         if (www.result != UnityWebRequest.Result.Success)
         {
-            Debug.LogFormat(www.error);
+            Debug.Log(www.error);
         }
         else
         {
             robotData = JsonUtility.FromJson<PathData>(www.downloadHandler.text);
-            Debug.Log(robotData.posList);
+            Debug.Log("Got robot position list with " + robotData.positions.Count + " elements");
             // Add and clear out any previous path data
             oldRobotPos = new List<Vector3>(newRobotPos);
             newRobotPos.Clear();
             // Add next positions
-            foreach (Vector3 pos in robotData.posList)
+            Debug.Log("Adding robot positions.");
+            foreach (Vector3 pos in robotData.positions)
             {
-                newRobotPos.Add(pos);
+                newRobotPos.Add(new Vector3(pos.x + 0.5f, pos.y, pos.z + 0.5f));
             }
-            // Resume simulation
+            Debug.Log("Finished adding robot positions.");
             pause = false;
         }
     }
@@ -251,16 +222,47 @@ public class AgentController : MonoBehaviour
         else
         {
             boxData = JsonUtility.FromJson<PathData>(www.downloadHandler.text);
-            Debug.Log(boxData.posList);
+            Debug.Log("Got box position list with " + boxData.positions.Count + " elements");
             // Clear out any previous path data
             oldBoxPos = new List<Vector3>(newBoxPos);
             newBoxPos.Clear();
             // Add next positions
-            foreach (Vector3 pos in boxData.posList)
+            Debug.Log("Adding box positions.");
+            foreach (Vector3 pos in boxData.positions)
             {
-                newBoxPos.Add(pos);
+                newBoxPos.Add(new Vector3(pos.x + 0.5f, pos.y, pos.z + 0.5f));
             }
             // Resume simulation
+            Debug.Log("Finished adding box positions.");
+            pause = false;
+        }
+    }
+
+    // Update depots' positions through the given JSON data
+    IEnumerator GetDepotData()
+    {
+        // Attempt to get the depots' positions
+        UnityWebRequest www = UnityWebRequest.Get(serverURL + depotEndpoint);
+        yield return www.SendWebRequest();
+        // If attempt is successful, set the depots in their new positions
+        if (www.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogFormat(www.error);
+        }
+        else
+        {
+            depotData = JsonUtility.FromJson<PathData>(www.downloadHandler.text);
+            Debug.Log("Got depot position list with " + depotData.positions.Count + " elements");
+            // Clear out any previous path data
+            oldDepotPos = new List<Vector3>(newDepotPos);
+            newDepotPos.Clear();
+            // Add next positions
+            Debug.Log("Adding depot positions.");
+            foreach (Vector3 pos in depotData.positions)
+            {
+                newDepotPos.Add(new Vector3(pos.x + 0.5f, pos.y, pos.z + 0.5f));
+            }
+            Debug.Log("Finished adding depot positions.");
             pause = false;
         }
     }
