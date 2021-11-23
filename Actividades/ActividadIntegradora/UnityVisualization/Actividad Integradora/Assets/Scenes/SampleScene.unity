@@ -186,6 +186,7 @@ MonoBehaviour:
   depot_y: 2
   width: 20
   height: 20
+  max_steps: 300
   updateTime: 0.05
   timer: 0
   dt: 0
