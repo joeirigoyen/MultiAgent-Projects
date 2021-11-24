@@ -1,8 +1,12 @@
 *.bin
 *.suo
 *.user
-Animation/obj
-Animation/Temp
-Animation/Library
+
+*.vscode
+/__pycache__
+
+Visualizer/obj
+Visualizer/Temp
+Visualizer/Library
 
 /[Tt]emp/
