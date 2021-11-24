@@ -1,6 +1,9 @@
 *.bin
 *.suo
 *.user
+*.vscode
+/__pycache__
+
 Visualizer/obj
 Visualizer/Temp
 Visualizer/Library

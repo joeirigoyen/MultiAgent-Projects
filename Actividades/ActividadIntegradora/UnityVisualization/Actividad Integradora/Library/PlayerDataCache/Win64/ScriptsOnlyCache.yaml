@@ -3,6 +3,8 @@ ScriptsOnlyBuild:
     Assembly-CSharp.dll:
     - AgentController
     - RoomPositionHandler
+    - SirenManager
+    - SirenRotator
     Unity.Rider.Editor.dll:
     - Packages.Rider.Editor.UnitTesting.CallbackData
     UnityEditor.TestRunner.dll:
@@ -44,7 +46,11 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 2406}
     - Class: 114
-      Script: {instanceID: 4076}
+      Script: {instanceID: 3152}
+    - Class: 114
+      Script: {instanceID: 3346}
+    - Class: 114
+      Script: {instanceID: 4080}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 157
@@ -354,6 +360,12 @@ ScriptsOnlyBuild:
     className: AudioPlayableAsset
   - hash:
       serializedVersion: 2
+      Hash: cdc01fd898e6d901ebfc8b3bfb419ae4
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: SirenRotator
+  - hash:
+      serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
     assemblyName: UnityEngine.TestRunner.dll
     namespaceName: UnityEngine.TestTools.TestRunner.Callbacks
@@ -382,6 +394,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: SignalTrack
+  - hash:
+      serializedVersion: 2
+      Hash: cb2a35052858050dd40c7fc80c14230f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: SirenManager
   - hash:
       serializedVersion: 2
       Hash: aba7b2852ef61d175dd9602e7723d5e5
