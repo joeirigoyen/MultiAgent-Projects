@@ -133,3 +133,4 @@ def update_model():
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8585, debug=True)
+   
