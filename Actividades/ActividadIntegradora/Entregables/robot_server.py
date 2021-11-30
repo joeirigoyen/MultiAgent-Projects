@@ -130,7 +130,6 @@ def update_model():
         step += 1
         return jsonify({"step": step})
 
-
 if __name__ == "__main__":
     app.run(host="localhost", port=8585, debug=True)
    

@@ -62,7 +62,7 @@ class Car(Agent):
         return None
     
     # Return whether the car is on a main avenue or not
-    def is_in_main_av(self):
+    def is_in_main_av(self) -> bool:
         # If car is in the first two columns or in the last two columns, return True
         if (self.pos[0] >= 0 and self.pos[0] < 2) and (self.pos[0] >= self.model.cols - 2 and self.pos[0] < self.model.cols):
             return True
@@ -74,11 +74,11 @@ class Car(Agent):
             return False
     
     # Get the direction of the car's next move
-    def get_turn_dir(self):
+    def get_turn_dir(self) -> tuple:
         return (self.next_cell[0] - self.pos[0], self.next_cell[1] - self.pos[1])
     
     # Check if a car will let other car go first in a cell
-    def give_priority(self, other: Agent):
+    def give_priority(self, other: Agent) -> bool:
         # If the other car is going straight and this car is going to turn
         if other.turn_dir == other.last_dir and self.turn_dir != self.last_dir:
             return True
@@ -149,7 +149,7 @@ class Car(Agent):
                 self.model.grid.move_agent(self, self.next_cell)
     
     # Return a boolean value representing if two cars are in the same position 
-    def check_crashes(self):
+    def check_crashes(self) -> bool:
         # Get contents from current cell
         cell_content = self.model.grid.get_cell_list_contents(self.pos)
         # Remove self from content
