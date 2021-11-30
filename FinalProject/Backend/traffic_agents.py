@@ -1,6 +1,5 @@
-from random import randint
-from re import A
 from mesa import Agent, Model
+from directions import Directions
 from agent_types import AgentTypes as agt
 from directions import Directions as dirs
 from grid_manager import NodeTypes
@@ -14,11 +13,13 @@ class Building(Agent):
       
         
 class Light(Agent):
-    def __init__(self, unique_id: int, model: Model) -> None:
+    def __init__(self, unique_id: int, model: Model, direction: Directions) -> None:
         super().__init__(unique_id, model)
         self.type_id = agt.LIGHT
-        self.state = bool(randint(0, 1))
-        self.direction = dirs.UP        
+        self.direction = direction
+        self.state = False if direction == dirs.UP or direction == dirs.DOWN else True
+        self.cars_in_col = 0
+        self.cars_in_row = 0
 
 
 class Destination(Agent):
@@ -33,16 +34,18 @@ class Car(Agent):
         super().__init__(unique_id, model)
         # Set initial attributes
         self.type_id = agt.CAR
-        self.destination = self.model.get_unique_destination()
+        self.destination = self.random.choice(self.model.destinations)
         self.has_arrived = False
         # Set start and end in map
         self.map = model.standard_map
         self.map[start_pos[0]][start_pos[1]].state = NodeTypes.START
         self.map[self.destination.pos[0]][self.destination.pos[1]].state = NodeTypes.END
         # Find path to destination
-        self.path = get_shortest_path(self.map, self.map[start_pos[0]][start_pos[1]], self.map[self.destination.pos[0]][self.destination.pos[1]])
-        self.next_cell = self.path[0]
+        self.path = get_shortest_path(self.map, self.map[start_pos[0]][start_pos[1]], self.map[self.destination.pos[0]][self.destination.pos[1]], model)
+        self.next_cell = None
         self.last_dir = self.map[start_pos[0]][start_pos[1]].direction
+        self.turn_dir = None
+        self.main_av = False
 
     # Check if destination cell is within the neighborhood
     def check_destination(self, neighborhood: list) -> tuple:
@@ -57,52 +60,70 @@ class Car(Agent):
                     return agent.pos    
         # If nothing was found, don't return anything
         return None
-
+    
+    # Return whether the car is on a main avenue or not
+    def is_in_main_av(self):
+        # If car is in the first two columns or in the last two columns, return True
+        if (self.pos[0] >= 0 and self.pos[0] < 2) and (self.pos[0] >= self.model.cols - 2 and self.pos[0] < self.model.cols):
+            return True
+        # If car is in the first two rows or in the last two rows, return True
+        elif (self.pos[1] >= 0 and self.pos[1] < 2) and (self.pos[1] >= self.model.rows - 2 and self.pos[1] < self.model.rows):
+            return True
+        # Otherwise, return False
+        else:
+            return False
+    
+    # Get the direction of the car's next move
+    def get_turn_dir(self):
+        return (self.next_cell[0] - self.pos[0], self.next_cell[1] - self.pos[1])
+    
     # Check if a car will let other car go first in a cell
     def give_priority(self, other: Agent):
-        other_last_dir = other.last_dir
-        if (other_last_dir == dirs.LEFT or other_last_dir == dirs.RIGHT) and (self.last_dir == dirs.UP or self.last_dir == dirs.DOWN):
-            return False
-        else:
+        # If the other car is going straight and this car is going to turn
+        if other.turn_dir == other.last_dir and self.turn_dir != self.last_dir:
             return True
-    
+        # If both cars are going to turn
+        elif other.turn_dir == other.last_dir and self.turn_dir != self.last_dir:
+            return False
+        # If both cars are turning or going straight
+        else:
+            # If this car comes from the main avenue, don't let the other pass and viceversa
+            return not self.main_av
+
     # Check if next cell is being targeted by other agents and return if car can go to it
     def can_get_to_next_cell(self) -> bool:
-        print(f"Checking cell: {self.next_cell}")
-        # If next cell is empty:
-        if self.model.grid.is_cell_empty(self.next_cell):
-            # Get next cell's neighbors
-            next_neighbors = self.model.grid.get_neighborhood(self.next_cell, moore=False, include_center=False)
-            # Remove self position from the neighborhood
-            if self.pos in next_neighbors:
-                next_neighbors.remove(self.pos)
-            # Check each cell within the neighborhood
-            for cell in next_neighbors:
-                # Check each cell's contents
-                for agent in self.model.grid.get_cell_list_contents(cell):
-                    # If there's a car in that cell, check if it's going to this cell too
+        # If next cell is not the car's destination, check if it can move towards it
+        if self.next_cell != self.destination.pos:
+            # If next cell is empty:
+            if self.model.grid.is_cell_empty(self.next_cell):
+                # Get next cell's neighbors
+                next_neighbors = self.model.grid.get_neighborhood(self.next_cell, moore=False, include_center=False)
+                # Remove self position from the neighborhood
+                if self.pos in next_neighbors:
+                    next_neighbors.remove(self.pos)
+                # Check each cell within the neighborhood
+                for cell in next_neighbors:
+                    # Check each cell's contents
+                    for agent in self.model.grid.get_cell_list_contents(cell):
+                        # If there's a car in that cell, check if it's going to this cell too
+                        if agent.type_id == agt.CAR:
+                            if not agent.has_arrived:
+                                # If they're going to the same cell, check if this car will let the other go first
+                                if agent.next_cell == self.next_cell:
+                                    return not self.give_priority(agent)
+                # If no agents were found in that cell, let the car advance
+                return True
+            # Otherwise, check if the contents of the next cell contain a car
+            else:
+                contents = self.model.grid.get_cell_list_contents(self.next_cell)
+                for agent in contents:
+                    # If agent is a car, don't let it advance
                     if agent.type_id == agt.CAR:
-                        if not agent.has_arrived:
-                            print(f"This car will go to: {agent.next_cell} and has a direction to the: {agent.last_dir}")
-                            # If they're going to the same cell, check if this car will let the other go first
-                            if agent.next_cell == self.next_cell:
-                                return not self.give_priority(agent)
-            # If no agents were found in that cell, let the car advance
-            print(f"Car can advance to {self.next_cell}")
-            return True
-        # Otherwise, check if the contents of the next cell contain a car
+                        return False
+                # If no car was found, let the car advance
+                return True
+        # Else, just return True since it can move no matter what
         else:
-            print(f"Cell {self.next_cell} is not empty")
-            contents = self.model.grid.get_cell_list_contents(self.next_cell)
-            print(f"Cell {self.next_cell} contains agents {contents}")
-            for agent in contents:
-                print(f"Agent is of type {agent.type_id}")
-                # If agent is a car, don't let it advance
-                if agent.type_id == agt.CAR:
-                    print(f"Car will not advance")
-                    return False
-            # If no car was found, let the car advance
-            print(f"Car can advance to {self.next_cell}")
             return True
             
     # Check if there are cars or lights in front of the car
@@ -126,10 +147,30 @@ class Car(Agent):
                 self.path.pop(0)
                 # Move agent towards the next cell
                 self.model.grid.move_agent(self, self.next_cell)
-                # If the cell the agent moved to is it's destination, set it's has_arrived attribute to True
-                if self.next_cell == self.destination:
-                    self.has_arrived = True
-        
+    
+    # Return a boolean value representing if two cars are in the same position 
+    def check_crashes(self):
+        # Get contents from current cell
+        cell_content = self.model.grid.get_cell_list_contents(self.pos)
+        # Remove self from content
+        cell_content.remove(self)
+        # Check if there's content in the cell other than self
+        if len(cell_content) > 0:
+            # Check every agent that is a car
+            for agent in cell_content:
+                if agent.type_id == agt.CAR:
+                    # If the car's position is already in the car's definition, return false
+                    if agent.pos == agent.destination.pos:
+                        return False
+                    # Otherwise, return true
+                    else:
+                        print(f"Crash in {self.pos}")
+                        return True
+            return False
+        # Otherwise return false
+        else:
+            return False
+
     def step(self) -> None:
         # If car hasn't arrived to it's destination
         if not self.has_arrived:
@@ -139,5 +180,14 @@ class Car(Agent):
             if len(self.path) > 0:
                 # Remove the next cell from the path
                 self.next_cell = self.path[0]
-                # Check if the car can advance given the next cell contents
+                self.turn_dir = self.get_turn_dir()
+                self.main_av = self.is_in_main_av()
+                self.turn_dir = self.map[self.next_cell[0]][self.next_cell[1]].direction
+                # Try to move to the next cell
                 self.move_next()
+                # Check if car is in the same position as another car
+                self.model.running = not self.check_crashes()
+            # Otherwise, set the car's has_arrived attribute to True
+            else:
+                self.model.arrivals += 1
+                self.has_arrived = True

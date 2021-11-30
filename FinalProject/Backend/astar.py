@@ -1,5 +1,4 @@
-from os import O_APPEND
-from typing import Counter
+from mesa.model import Model
 from grid_manager import NodeTypes
 from grid_manager import Node, h
 from queue import PriorityQueue
@@ -14,7 +13,10 @@ def get_nodes_in_path(came_from: dict, current: Node):
     return path        
 
 
-def get_shortest_path(grid: list, start: Node, end: Node) -> list or None:
+def get_shortest_path(grid: list, start: Node, end: Node, model: Model) -> list or None:
+    # Open destination Node momentarily so the algorithm can detect it
+    model.standard_map[end.row][end.col].state = NodeTypes.END
+    model.standard_map[end.row][end.col].update_adj()
     # Initialize counter, queue and set
     count = 0
     open_set = PriorityQueue()
@@ -36,6 +38,8 @@ def get_shortest_path(grid: list, start: Node, end: Node) -> list or None:
         open_set_hash.remove(current)
         # Check if current node is already the destination
         if current == end:
+            model.standard_map[end.row][end.col].state = NodeTypes.OBSTACLE
+            model.standard_map[end.row][end.col].update_adj()
             return get_nodes_in_path(came_from, current)
         # Check the neighbors of the current node and add a temporary g score
         for neighbor in current.neighbors:
@@ -55,4 +59,6 @@ def get_shortest_path(grid: list, start: Node, end: Node) -> list or None:
                     neighbor.state = NodeTypes.VISITED
                 if current != start:
                     current.state = NodeTypes.CLOSED
+    model.standard_map[end.row][end.col].state = NodeTypes.OBSTACLE
+    model.standard_map[end.row][end.col].update_adj()
     return []

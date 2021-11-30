@@ -1,6 +1,6 @@
 from mesa import Model
 from mesa.time import RandomActivation
-from mesa.space import Grid, MultiGrid
+from mesa.space import MultiGrid
 from traffic_agents import *
 from agent_types import AgentTypes as agt
 from directions import Directions as dirs
@@ -8,8 +8,8 @@ from grid_manager import *
 
 COLS = 26
 ROWS = 26
-CARS = 11
-
+CARS = 10
+FILENAME = "Backend\\map_copy.txt"
 
 class TrafficModel(Model):
     def __init__(self, max_steps: int) -> None:
@@ -27,8 +27,9 @@ class TrafficModel(Model):
         # Initialize standard car map and destination list
         self.standard_map = make_grid(ROWS, COLS, self)
         self.destinations = []
+        self.new_car_spawns = [[(0, 0), (0, 1)], [(self.cols - 1, self.rows - 1), (self.cols - 1, self.rows - 2)], [(0, self.rows - 1), (0, self.rows - 2)], [(self.cols - 1, 0), (self.cols - 1, 1)]]
         # Create agents using a text file
-        with open("Backend\\map.txt") as m:
+        with open(FILENAME) as m:
             # Initialize agents from txt file
             lines = m.readlines()
             for row in range(len(lines)):
@@ -37,21 +38,19 @@ class TrafficModel(Model):
                     agent = None
                     if lines[row][col] == "s":
                         # Create light agent
-                        agent = Light(self.agent_uid, self)
                         if lines[row][col - 1] == "<" or lines[row][col + 1] == "<":
-                            agent.direction = dirs.LEFT
+                            agent = Light(self.agent_uid, self, dirs.LEFT)
                             self.standard_map[row][col].direction = dirs.LEFT
                         elif lines[row][col - 1] == ">" or lines[row][col + 1] == ">":
-                            agent.direction = dirs.RIGHT
+                            agent = Light(self.agent_uid, self, dirs.RIGHT)
                             self.standard_map[row][col].direction = dirs.RIGHT
                     elif lines[row][col] == "S":
                         # Create light agent
-                        agent = Light(self.agent_uid, self)
                         if lines[row - 1][col] == "^" or lines[row + 1][col] == "^":
-                            agent.direction = dirs.UP
+                            agent = Light(self.agent_uid, self, dirs.UP)
                             self.standard_map[row][col].direction = dirs.UP
                         elif lines[row - 1][col] == "v" or lines[row + 1][col] == "v":
-                            agent.direction = dirs.DOWN
+                            agent = Light(self.agent_uid, self, dirs.DOWN)
                             self.standard_map[row][col].direction = dirs.DOWN
                     elif lines[row][col] == "#":
                         # Create building agents
@@ -60,6 +59,7 @@ class TrafficModel(Model):
                     elif lines[row][col] == "D":
                         # Create destination point
                         agent = Destination(self.agent_uid, self)
+                        self.standard_map[row][col].state = NodeTypes.OBSTACLE
                         self.destinations.append(agent)
                     # If cell is part of the road, assign it's direction
                     elif lines[row][col] == "^":
@@ -72,7 +72,8 @@ class TrafficModel(Model):
                         self.standard_map[row][col].direction = dirs.RIGHT
                     # If agent is not None, add agent to the model's grid
                     if agent:
-                        self.schedule.add(agent)
+                        if agent.type_id != agt.BUILDING:
+                            self.schedule.add(agent)
                         self.grid.place_agent(agent, (row, col))
                         self.agent_uid += 1
         # Set directions of every node
@@ -85,8 +86,7 @@ class TrafficModel(Model):
             self.schedule.add(car)
             self.grid.place_agent(car, car_pos)
             self.agent_uid += 1
-            
-
+    
     # Get a position where a cell is empty
     def get_unique_pos(self) -> tuple:
         random_pos = lambda r, c: (self.random.randrange(r), self.random.randrange(c))
@@ -104,7 +104,7 @@ class TrafficModel(Model):
 
     def step(self) -> None:
         # If the number of cars that have arrived to their destinations are still less than the number of cars, keep running
-        if self.arrivals < self.cars and self.schedule.steps < self.max_steps:
+        if self.schedule.steps < self.max_steps:
             # Advance one step
             self.schedule.step()
             # Change the lights' state every 10 steps
@@ -112,5 +112,12 @@ class TrafficModel(Model):
                 for agent in self.schedule.agents:
                     if agent.type_id == agt.LIGHT:
                         agent.state = not agent.state
+                # Create car agents in each entrance
+                for i in range(len(self.new_car_spawns)):
+                    car_pos = self.random.choice(self.new_car_spawns[i])
+                    car = Car(self.agent_uid, self, car_pos)
+                    self.schedule.add(car)
+                    self.grid.place_agent(car, car_pos)
+                    self.agent_uid += 1
         else:
-            self.running = False
+            self.running = False    

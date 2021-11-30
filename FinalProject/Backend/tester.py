@@ -8,6 +8,6 @@ MAX_STEPS = 1000
 model = TrafficModel(MAX_STEPS)
 
 if __name__ == '__main__':
-    for i in range(10):
+    for i in range(1):
         print(f"Step {i}")
         model.step()

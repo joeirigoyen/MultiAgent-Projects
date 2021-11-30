@@ -180,14 +180,14 @@ MonoBehaviour:
   boxPrefab: {fileID: 567427604351239134, guid: e6a46b7b87740e0449347b3778c84f9f, type: 3}
   depotPrefab: {fileID: 5621236410772565956, guid: e30f1a2d788486a4eb5fd6ca9e374ea9, type: 3}
   floor: {fileID: 861780396}
-  robots: 10
-  boxes: 75
-  depot_x: 3
-  depot_y: 5
+  robots: 5
+  boxes: 20
+  depot_x: 2
+  depot_y: 2
   width: 12
   height: 12
   max_steps: 10000
-  updateTime: 0.1
+  updateTime: 0.5
   timer: 0
   dt: 0
 --- !u!1001 &284110711

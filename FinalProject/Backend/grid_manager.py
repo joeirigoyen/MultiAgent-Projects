@@ -21,6 +21,15 @@ class Node:
         self.model = model
         self.neighbors = []
     
+    # Update the adjacent nodes of a node
+    def update_adj(self) -> None:
+        # Update every adjacent node
+        self.model.standard_map[self.row][self.col + 1].update_neighbors()
+        self.model.standard_map[self.row][self.col - 1].update_neighbors()
+        self.model.standard_map[self.row + 1][self.col].update_neighbors()
+        self.model.standard_map[self.row - 1][self.col].update_neighbors()
+    
+    # Update the neighbor list of a node
     def update_neighbors(self) -> None:
         self.neighbors.clear()
         if self.col < self.model.cols - 1 and not self.model.standard_map[self.row][self.col + 1].state == NodeTypes.OBSTACLE:
@@ -41,12 +50,14 @@ class Node:
                     self.neighbors.append(self.model.standard_map[self.row - 1][self.col])
 
 
+# Update every node's neighbor list
 def init_neighborhood(grid: list) -> None:
     for i in range(len(grid)):
         for j in range(len(grid[i])):
             grid[i][j].update_neighbors()
+            
 
-
+# Create a grid with empty nodes
 def make_grid(rows: int, cols: int, model: Model) -> list:
     grid = []
     for row in range(rows):
@@ -58,5 +69,6 @@ def make_grid(rows: int, cols: int, model: Model) -> list:
     return grid
 
 
+# Get Manhattan distance from one node to another
 def h(n1: Node, n2: Node):
     return abs(n1.col - n2.col) + abs(n1.row - n2.row)
