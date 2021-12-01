@@ -4,10 +4,17 @@ using UnityEngine;
 
 public class CameraRotator : MonoBehaviour
 {
-    // speed in wich the camara will rotate the city
+    // Speed in which the camara will rotate around the city
     public float camera_speed;
+    private int presses;
+    private bool rotate;
     void Update()
     {
-        transform.Rotate(0, camera_speed * Time.deltaTime, 0);
+        if (Input.GetKeyDown(KeyCode.R)) {
+            presses++;
+        }
+        if (presses % 2 == 0) {
+            transform.Rotate(0, camera_speed * Time.deltaTime, 0);
+        }
     }
 }

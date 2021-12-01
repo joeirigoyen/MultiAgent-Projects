@@ -11,7 +11,7 @@ public class toggleCamera : MonoBehaviour
     public void SwitchCam(){
         x += 1;
         Debug.Log(x);
-        if(!(x % 2 == 0)){
+        if(x % 2 == 0){
             cam1.enabled = true;
             cam2.enabled = false;
         } else{
