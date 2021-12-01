@@ -10,8 +10,8 @@ class Building(Agent):
     def __init__(self, unique_id: int, model: Model) -> None:
         super().__init__(unique_id, model)
         self.type_id = agt.BUILDING
-      
-        
+
+
 class Light(Agent):
     def __init__(self, unique_id: int, model: Model, direction: Directions) -> None:
         super().__init__(unique_id, model)
@@ -72,23 +72,28 @@ class Car(Agent):
         # Otherwise, return False
         else:
             return False
-    
+
     # Get the direction of the car's next move
     def get_turn_dir(self) -> tuple:
         return (self.next_cell[0] - self.pos[0], self.next_cell[1] - self.pos[1])
     
     # Check if a car will let other car go first in a cell
     def give_priority(self, other: Agent) -> bool:
-        # If the other car is going straight and this car is going to turn
-        if other.turn_dir == other.last_dir and self.turn_dir != self.last_dir:
-            return True
-        # If both cars are going to turn
-        elif other.turn_dir == other.last_dir and self.turn_dir != self.last_dir:
+        # If the car is in the main avenue but the other isn't, don't give priority
+        if self.main_av and not other.main_av:
             return False
-        # If both cars are turning or going straight
+        # If this car is not in the main avenue but the other is, give priority
+        elif not self.main_av and other.main_av:
+            return True
+        # If this car is going straight and the other car is going to turn
+        elif self.turn_dir == self.last_dir and other.turn_dir != other.last_dir:
+            return False
+        # If both cars are going to turn
+        elif other.turn_dir != other.last_dir and self.turn_dir != self.last_dir:
+            return True
+        # If both cars are going straight
         else:
-            # If this car comes from the main avenue, don't let the other pass and viceversa
-            return not self.main_av
+            return True
 
     # Check if next cell is being targeted by other agents and return if car can go to it
     def can_get_to_next_cell(self) -> bool:
@@ -125,7 +130,7 @@ class Car(Agent):
         # Else, just return True since it can move no matter what
         else:
             return True
-            
+
     # Check if there are cars or lights in front of the car
     def has_green_light(self) -> bool:
         # If there's a light in the next cell, check if it's a light
@@ -147,7 +152,7 @@ class Car(Agent):
                 self.path.pop(0)
                 # Move agent towards the next cell
                 self.model.grid.move_agent(self, self.next_cell)
-    
+
     # Return a boolean value representing if two cars are in the same position 
     def check_crashes(self) -> bool:
         # Get contents from current cell
