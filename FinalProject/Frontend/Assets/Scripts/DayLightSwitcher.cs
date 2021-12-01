@@ -37,7 +37,6 @@ public class DayLightSwitcher : MonoBehaviour
                 currentColor = lerped;
                 transform.localRotation = lerpedRot;
                 timer += Time.deltaTime;
-                
             }
         } else {
             if (timer < updateTime) {
