@@ -120,10 +120,11 @@ class TrafficModel(Model):
                 # Create car agents in each entrance
                 for i in range(len(self.new_car_spawns)):
                     car_pos = self.random.choice(self.new_car_spawns[i])
-                    car = Car(self.agent_uid, self, car_pos)
-                    self.schedule.add(car)
-                    self.grid.place_agent(car, car_pos)
-                    self.agent_uid += 1
+                    if self.grid.is_cell_empty(car_pos):
+                        car = Car(self.agent_uid, self, car_pos)
+                        self.schedule.add(car)
+                        self.grid.place_agent(car, car_pos)
+                        self.agent_uid += 1
             # Get every light's state
             new_states = set()
             for agent in self.schedule.agents:

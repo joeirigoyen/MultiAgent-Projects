@@ -6,38 +6,40 @@ from grid_manager import NodeTypes
 from astar import *
 
 
+# Represents a building, not much will be happening with this agent since it's not even going to be added to the scheduler
 class Building(Agent):
     def __init__(self, unique_id: int, model: Model) -> None:
         super().__init__(unique_id, model)
-        self.type_id = agt.BUILDING
+        self.type_id = agt.BUILDING # Set the type of agent as Building
 
 
+# Represents a traffic light, has a direction since it's part of the road, and a state for the cars to check and decide if they will advance
 class Light(Agent):
     def __init__(self, unique_id: int, model: Model, direction: Directions) -> None:
         super().__init__(unique_id, model)
-        self.type_id = agt.LIGHT
-        self.direction = direction
-        self.state = False if direction == dirs.UP or direction == dirs.DOWN else True
-        self.cars_in_col = 0
-        self.cars_in_row = 0
+        self.type_id = agt.LIGHT                                                        # Agent type
+        self.direction = direction                                                      # Direction of the road 
+        self.state = False if direction == dirs.UP or direction == dirs.DOWN else True  # Initial state depending on it's direction
 
 
+# Represents the place where a car will try to get to
 class Destination(Agent):
     def __init__(self, unique_id: int, model: Model) -> None:
-        super().__init__(unique_id, model)
-        self.type_id = agt.DESTINATION
-        self.occupied = False
+        super().__init__(unique_id, model)  
+        self.type_id = agt.DESTINATION  # Agent type
+        self.occupied = False           # Determines if a destination has a car inside it (obsolete after implementation of new car spawns)
 
 
+# Represents a car within the model
 class Car(Agent):
     def __init__(self, unique_id: int, model: Model, start_pos: tuple) -> None:
         super().__init__(unique_id, model)
         # Set initial attributes
-        self.type_id = agt.CAR
-        self.destination = self.random.choice(self.model.destinations)
-        self.has_arrived = False
-        # Set start and end in map
-        self.map = model.standard_map
+        self.type_id = agt.CAR                                          # Agent type
+        self.destination = self.random.choice(self.model.destinations)  # Random destination from the model's destinations list
+        self.has_arrived = False                                        # Contains if the car has arrived or not
+        # Set start and end in map                                      
+        self.map = model.standard_map                                   # A copy of the model's graph
         self.map[start_pos[0]][start_pos[1]].state = NodeTypes.START
         self.map[self.destination.pos[0]][self.destination.pos[1]].state = NodeTypes.END
         # Find path to destination
@@ -60,7 +62,7 @@ class Car(Agent):
                     return agent.pos    
         # If nothing was found, don't return anything
         return None
-    
+
     # Return whether the car is on a main avenue or not
     def is_in_main_av(self) -> bool:
         # If car is in the first two columns or in the last two columns, return True

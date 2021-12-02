@@ -12,7 +12,7 @@ public class CitySpawner : MonoBehaviour
 {
 
     // Initialize server and declare endpoints
-    private string serverURL = "https://traffic-model.us-south.cf.appdomain.cloud"; //"localhost"
+    private string serverURL = "http://localhost:8585"; //"https://traffic-model.us-south.cf.appdomain.cloud"
     private string beginEndpoint = "/begin";
     private string carEndpoint = "/cars";
     private string carStateEndpoint = "/carStates";
@@ -143,7 +143,8 @@ public class CitySpawner : MonoBehaviour
                     float temp = carStates[c].x;
                     // Make cars disappear if they are already in their destination
                     if ((int)temp == 1) {
-                        carInstances[c].transform.GetChild(0).GetComponent<Renderer>().enabled = false;
+                        //carInstances[c].transform.localScale = new Vector3(10f, 10f, 10f);
+                        carInstances[c].transform.GetChild(0).gameObject.SetActive(false);
                     }
                 }
 

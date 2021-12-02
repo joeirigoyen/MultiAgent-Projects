@@ -13,7 +13,7 @@ public class DayLightSwitcher : MonoBehaviour
     private Color currentColor;
     private int presses = 0;
     private float timer = 0;
-    
+
     // Start
     void Start() {
         isDaytime = true;

@@ -13,7 +13,7 @@ def get_nodes_in_path(came_from: dict, current: Node):
     return path        
 
 
-def get_shortest_path(grid: list, start: Node, end: Node, model: Model) -> list or None:
+def get_shortest_path(grid: list, start: Node, end: Node, model: Model) -> list:
     # Open destination Node momentarily so the algorithm can detect it
     model.standard_map[end.row][end.col].state = NodeTypes.END
     model.standard_map[end.row][end.col].update_adj()

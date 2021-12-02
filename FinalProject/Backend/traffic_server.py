@@ -11,7 +11,6 @@ cars = 20
 step = 0
 model = None
 
-
 # Initialize app
 app = Flask("Traffic Model")
 
@@ -130,4 +129,3 @@ def update_model():
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8585, debug=True)
-    

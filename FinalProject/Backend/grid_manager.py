@@ -55,7 +55,7 @@ def init_neighborhood(grid: list) -> None:
     for i in range(len(grid)):
         for j in range(len(grid[i])):
             grid[i][j].update_neighbors()
-            
+
 
 # Create a grid with empty nodes
 def make_grid(rows: int, cols: int, model: Model) -> list:
