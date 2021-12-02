@@ -12,13 +12,14 @@ public class CitySpawner : MonoBehaviour
 {
 
     // Initialize server and declare endpoints
-    private string serverURL = "http://localhost:8585";
+    private string serverURL = "https://traffic-model.us-south.cf.appdomain.cloud"; //"localhost"
     private string beginEndpoint = "/begin";
     private string carEndpoint = "/cars";
     private string carStateEndpoint = "/carStates";
     private string lightsPosEndpoint = "/lightsPositions";
     private string lightsStatesEndpoint = "/lightStates";
     private string stepEndpoint = "/step";
+    private bool connected = false;
     // Initialize position and state list
     private PathData carData, carStateData, lightPosData, lightStateData;
     private List<GameObject> carInstances, lightInstances;
@@ -33,7 +34,7 @@ public class CitySpawner : MonoBehaviour
     private int total_cars = 0;
     private int light_count = 28;
     private int step;
-    private bool pause = false;
+    private bool pause = true;
 
     // Function to create a certain number of GameObjects
     void CreateGameObject(int count, List<GameObject> prefabList, List<GameObject> instances, bool is_car) {
@@ -112,58 +113,60 @@ public class CitySpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Get variable t from timer and time to update
-        float t = timer / updateTime;
-        // Number of steps to be taken before an agent gets from one point to another
-        dt = 1.0f - (timer / updateTime);
-        // If timer's value is higher than the time to update, pause the simulation and make a new step
-        if (timer >= updateTime)
-        {
-            timer = 0;
-            pause = true;
-            StartCoroutine(Step());
-            step++;
-            Debug.Log("Step: " + step);
-        }
-
-        // If the simulation is not paused, move the agents smoothly using LERPs
-        if (!pause)
-        {
-            for (int c = 0; c < total_cars; c++)
+        if (connected) {
+            // Get variable t from timer and time to update
+            float t = timer / updateTime;
+            // Number of steps to be taken before an agent gets from one point to another
+            dt = 1.0f - (timer / updateTime);
+            // If timer's value is higher than the time to update, pause the simulation and make a new step
+            if (timer >= updateTime)
             {
-                Vector3 lerp = Vector3.Lerp(newCarPos[c], oldCarPos[c], dt);
-                carInstances[c].transform.localPosition = lerp;
-                if (oldCarPos[c] != newCarPos[c]) {
-                    Vector3 facingDir = oldCarPos[c] - newCarPos[c];
-                    carInstances[c].transform.localRotation = Quaternion.LookRotation(facingDir);
-                    carInstances[c].transform.Rotate(0f, 180f, 0f);
-                }
-                // Get info from car states list
-                float temp = carStates[c].x;
-                // Make cars disappear if they are already in their destination
-                if ((int)temp == 1) {
-                    carInstances[c].transform.GetChild(0).GetComponent<Renderer>().enabled = false;
-                }
+                step++;
+                timer = 0;
+                pause = true;
+                StartCoroutine(Step());
             }
 
-            for (int i = 0; i < light_count; i++)
-            {   
-                Vector3 lerp = Vector3.Lerp(oldLightPos[i], newLightPos[i], dt);
-                lightInstances[i].transform.localPosition = lerp;
-                float temp = lightStates[i].x;
-                if ((int)temp == 0) {
-                    lightInstances[i].transform.GetChild(0).GetComponent<LightCycler>().state = false;
-                } else {
-                    lightInstances[i].transform.GetChild(0).GetComponent<LightCycler>().state = true;
+            // If the simulation is not paused, move the agents smoothly using LERPs
+            if (!pause)
+            {
+                for (int c = 0; c < total_cars; c++)
+                {
+                    Vector3 lerp = Vector3.Lerp(newCarPos[c], oldCarPos[c], dt);
+                    carInstances[c].transform.localPosition = lerp;
+                    if (oldCarPos[c] != newCarPos[c]) {
+                        Vector3 facingDir = oldCarPos[c] - newCarPos[c];
+                        carInstances[c].transform.localRotation = Quaternion.LookRotation(facingDir);
+                        carInstances[c].transform.Rotate(0f, 180f, 0f);
+                    }
+                    // Get info from car states list
+                    float temp = carStates[c].x;
+                    // Make cars disappear if they are already in their destination
+                    if ((int)temp == 1) {
+                        carInstances[c].transform.GetChild(0).GetComponent<Renderer>().enabled = false;
+                    }
                 }
-            }
-            timer += Time.deltaTime;
-        } else {
-            if (step > 1) {
-                // Check if position list has more agents than the current agents in the simulation
-                if (carData.positions.Count > total_cars) {
-                    // Instantiate 4 new cars
-                    CreateGameObject(new_cars, carPrefabs, carInstances, true);
+
+                for (int i = 0; i < light_count; i++)
+                {   
+                    Vector3 lerp = Vector3.Lerp(oldLightPos[i], newLightPos[i], dt);
+                    lightInstances[i].transform.localPosition = lerp;
+                    float temp = lightStates[i].x;
+                    if ((int)temp == 0) {
+                        lightInstances[i].transform.GetChild(0).GetComponent<LightCycler>().state = false;
+                    } else {
+                        lightInstances[i].transform.GetChild(0).GetComponent<LightCycler>().state = true;
+                    }
+                }
+                timer += Time.deltaTime;
+            } else {
+                Debug.Log("Step: " + step);
+                if (step > 2) {
+                    // Check if position list has more agents than the current agents in the simulation
+                    if (carData.positions.Count > total_cars) {
+                        // Instantiate 4 new cars
+                        CreateGameObject(new_cars, carPrefabs, carInstances, true);
+                    }
                 }
             }
         }
@@ -189,6 +192,7 @@ public class CitySpawner : MonoBehaviour
         else
         {
             Debug.Log("Post completed. Getting agents' positions.");
+            connected = true;
             StartCoroutine(GetCarData());
             StartCoroutine(GetCarState());
             StartCoroutine(GetLightPathData());

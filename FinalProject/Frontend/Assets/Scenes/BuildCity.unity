@@ -16180,6 +16180,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: dfe047721f4cef944a19432f8a0795eb, type: 3}
   - {fileID: 8300000, guid: a9164c7dc15651b4683fb35bfb6f3366, type: 3}
   - {fileID: 8300000, guid: 3191231796cbda2419cfa94c3d27a678, type: 3}
+  - {fileID: 8300000, guid: 3ce2c64b72228974f88e5797ff422b51, type: 3}
   motorSounds:
   - {fileID: 8300000, guid: b527fa83c45cadf46b4141699228b3e4, type: 3}
   - {fileID: 8300000, guid: 0a50f719e0cad7b43b151273d7c22734, type: 3}

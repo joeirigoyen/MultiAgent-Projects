@@ -1,6 +1,5 @@
 __author__ = "Raúl Youthan Irigoyen Osorio"
 
-from typing import Any
 from flask import Flask, request, jsonify
 from mesa import agent
 from traffic_agents import *
@@ -39,7 +38,7 @@ def start_model():
         model = TrafficModel(cars, max_steps)
         # Return JSON message if post method completed
         print(f"Model initialized [cars: {cars} max_steps: {max_steps}]")
-        return jsonify({"status": "OK"})
+        return jsonify({"status": "OK"}) 
 
 
 # Get trajectories from cars
