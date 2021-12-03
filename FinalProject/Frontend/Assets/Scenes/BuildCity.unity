@@ -12858,8 +12858,8 @@ MonoBehaviour:
   - {fileID: 1505870589044038811, guid: abd79c203cc8c734aaefc391a963380c, type: 3}
   lightPrefabs:
   - {fileID: 1221989198454966, guid: 8f845198ed09c3c4bac1cbc4fce5e435, type: 3}
-  initial_cars: 30
-  maxSteps: 500
+  initial_cars: 50
+  maxSteps: 1000
   updateTime: 0.2
   timer: 0
   dt: 0

@@ -164,9 +164,9 @@ public class CitySpawner : MonoBehaviour
                 Debug.Log("Step: " + step);
                 if (step > 2) {
                     // Check if position list has more agents than the current agents in the simulation
-                    if (carData.positions.Count > total_cars) {
-                        // Instantiate 4 new cars
-                        CreateGameObject(new_cars, carPrefabs, carInstances, true);
+                    if (carData.positions.Count > oldCarPos.Count) {
+                        // Instantiate new cars
+                        CreateGameObject(carData.positions.Count - oldCarPos.Count, carPrefabs, carInstances, true);
                     }
                 }
             }
