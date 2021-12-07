@@ -23,6 +23,6 @@ If you want to know in more detail about the agent communication protocol, the a
 
 ## Final Project
 
-![Demo](https://media1.giphy.com/media/0SI4m4E7LFcxT3INFM/giphy.gif?cid=790b76116c71c3023888ba3b7c4dec16373a271d898ca1a6&rid=giphy.gif&ct=g "Demo")
+![Demo](https://media.giphy.com/media/0SI4m4E7LFcxT3INFM/giphy-downsized-large.gif)
 
 This project is still under it's development phase. This project simulates traffic in a particular area, where each of the cars present during the simulation will have a point to travel to, avoiding collisions with any other car, a building or any other obstacle, as well as taking care of the state of the lights' states to decide whether to stop or keep going. This also utilizes the ***mesa*** package since it makes use of the multi-agent paradigm. Also, the cars re-trace their trajectories on each step using the A* algorithm to avoid collisions. This project can be visualized in 2D using a browser, but Unity can be used to visualize it in 3D with more realistic models.
