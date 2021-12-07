@@ -1,6 +1,6 @@
-# MultiAgentes
+# Multi-agent projects
 
-This repository contains a series of activities and documents elaborated during the Multi-Agent System Modelling course. There are two main programs within this repository:
+This repository contains a series of activities and documents elaborated during the Multi-Agent Systems Modelling course. There are two main projects within this repository:
 
 ## Actividad Integradora
 This is a warehouse-like simulation where a given number of robots attempt to put a series of boxes in an available deposit cell (*meaning the deposit doesn't contain more than 5 boxes*) in a given area. The program utilizes the ***mesa*** package in order to achieve an agent-oriented programming paradigm. The simulation can be visualized in a browser by running the **robot_visualizer.py** file. Also, it might be visualized in Unity if it's installed in your local machine following these steps:
@@ -19,7 +19,7 @@ This is a warehouse-like simulation where a given number of robots attempt to pu
   - **Step 3:** Run the simulation's server by running the **robot_server.py** file in your command line. Do not close it.
   - **Step 4:** Run the program inside the Unity Editor by clicking on the Run button.
 
-If you want to know in more detail about the agent communication protocol, the agents' structure or the whole objective of the project, check the documents within the same folder as the simulation.
+If you want to know in more detail about the agents' communication protocol, the agents' structure or the goals of the project, check the documents within the same folder as the simulation.
 
 ## Final Project
 
