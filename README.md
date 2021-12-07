@@ -22,4 +22,7 @@ This is a warehouse-like simulation where a given number of robots attempt to pu
 If you want to know in more detail about the agent communication protocol, the agents' structure or the whole objective of the project, check the documents within the same folder as the simulation.
 
 ## Final Project
+
+![Demo](https://giphy.com/gifs/cars-ai-traffic-0SI4m4E7LFcxT3INFM "Demo")
+
 This project is still under it's development phase. This project simulates traffic in a particular area, where each of the cars present during the simulation will have a point to travel to, avoiding collisions with any other car, a building or any other obstacle, as well as taking care of the state of the lights' states to decide whether to stop or keep going. This also utilizes the ***mesa*** package since it makes use of the multi-agent paradigm. Also, the cars re-trace their trajectories on each step using the A* algorithm to avoid collisions. This project can be visualized in 2D using a browser, but Unity can be used to visualize it in 3D with more realistic models.
