@@ -25,4 +25,6 @@ If you want to know in more detail about the agents' communication protocol, the
 
 ![Demo](https://media.giphy.com/media/0SI4m4E7LFcxT3INFM/giphy-downsized-large.gif)
 
-This project is still under it's development phase. This project simulates traffic in a particular area, where each of the cars present during the simulation will have a point to travel to, avoiding collisions with any other car, a building or any other obstacle, as well as taking care of the state of the lights' states to decide whether to stop or keep going. This also utilizes the ***mesa*** package since it makes use of the multi-agent paradigm. Also, the cars re-trace their trajectories on each step using the A* algorithm to avoid collisions. This project can be visualized in 2D using a browser, but Unity can be used to visualize it in 3D with more realistic models.
+Simulates traffic by using a cooperation system between agents that lets them decide when to let other car go first, as well as when to stop by using the traffic lights as a reference. Avoids crashing at all costs. Also, every car has a pre-generated path using an A* implementation. The whole simulation is actually done in **python** by using **mesa** to model the agents' behaviour, but the positions and states are passed from Flask to a **C# script** that is run by **Unity** to make the 3D visualization.
+
+The instructions for installation and execution can be found here: https://drive.google.com/file/d/1dqQ8jMA8D8s7RFy_AzHuNuy-B0zpqAqP/view?usp=sharing
